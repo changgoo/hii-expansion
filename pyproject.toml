@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hii-expansion"
+version = "0.1.0"
+description = "HII region expansion solver for arbitrary density profiles"
+requires-python = ">=3.12"
+dependencies = ["numpy", "scipy", "astropy", "matplotlib"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+]
+ignore = [
+    # Physics notation: Q (photon rate), T (temperature), R (radius),
+    # alpha_B (recombination coefficient) are conventional uppercase names.
+    "N802",  # function name should be lowercase
+    "N803",  # argument name should be lowercase
+    "N806",  # variable in function should be lowercase
+    "N816",  # mixed-case variable in global scope
+]
