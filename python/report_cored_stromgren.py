@@ -21,7 +21,7 @@ n0 = 100.0
 T = 1.0e4
 alpha_B = alpha_B_case_B(T)
 
-R0_VALUES = [5.0 * PC, 10.0 * PC]
+R0_VALUES = [1.0 * PC, 5.0 * PC, 10.0 * PC]
 W_VALUES = [1.0, 1.5, 2.0]
 
 # Uniform reference (w=0)
@@ -38,8 +38,12 @@ for r0 in R0_VALUES:
         def n_profile(r: float, _w: float = w, _r0: float = r0) -> float:
             return n0 / (1.0 + (r / _r0) ** _w)
 
-        hii = HIIRegion(Q=Q, n=n_profile, T=T)
-        R_st = hii.stromgren_radius()
+        hii = HIIRegion(Q=Q, n=n_profile, T=T, integration_points=[r0])
+        try:
+            R_st = hii.stromgren_radius()
+        except RuntimeError as exc:
+            print(f"{r0_pc:>8.0f}  {w:>4.1f}  {'N/A (density-bounded)':>37}")
+            continue
         n_rms = np.sqrt(3.0 * Q / (4.0 * np.pi * alpha_B * R_st**3))
         print(f"{r0_pc:>8.0f}  {w:>4.1f}  {R_st/PC:>10.3f}  {n_rms:>14.2f}  {n_rms/n0:>9.4f}")
     print()

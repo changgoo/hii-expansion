@@ -1,7 +1,7 @@
 """HII region expansion into a cored density profile n(r) = n0/(1+(r/r0)^w).
 
 Shows both the density profile n(r) vs r and the expansion R(t) vs t for
-r0 = (5, 10) pc and w = (1, 1.5, 2).
+r0 = (1, 5, 10) pc and w = (1, 1.5, 2).
 
 The late-time asymptotic slope R ∝ t^{4/(7-2w)} (Franco et al. 1990) applies
 once R >> r0 and the density profile looks like a pure power law.
@@ -26,7 +26,7 @@ n0 = 100.0        # central density [cm⁻³]
 T = 1.0e4         # temperature [K]
 alpha_B = alpha_B_case_B(T)
 
-R0_VALUES = [5.0 * PC, 10.0 * PC]   # core radii [cm]
+R0_VALUES = [1.0 * PC, 5.0 * PC, 10.0 * PC]   # core radii [cm]
 W_VALUES = [1.0, 1.5, 2.0]          # power-law indices
 
 MYR = 1.0e6 * YR
@@ -46,7 +46,7 @@ t_ref_end = 2.0 * t_end     # black dotted lines extend here
 # ---------------------------------------------------------------------------
 colors = plt.cm.plasma(np.linspace(0.1, 0.75, len(W_VALUES)))
 
-fig, axes = plt.subplots(2, 2, figsize=(10, 7), sharex="row", sharey="row")
+fig, axes = plt.subplots(2, 3, figsize=(14, 7), sharex="row", sharey="row")
 
 # r grid for density profile plot (0.01 pc … 200 pc)
 r_pc = np.logspace(-2, 2.5, 500)
@@ -79,8 +79,18 @@ for col, r0 in enumerate(R0_VALUES):
         ax_n.loglog(r_pc, n_vals, color=color, lw=2.0, label=lbl)
 
         # ---- evolution ----
-        hii = HIIRegion(Q=Q, n=n_profile, T=T)
-        sol = hii.evolve((0.0, t_end), n_eval=600, rtol=1e-10, atol=0.0)
+        hii = HIIRegion(Q=Q, n=n_profile, T=T, integration_points=[r0])
+        try:
+            sol = hii.evolve((0.0, t_end), n_eval=600, rtol=1e-10, atol=0.0)
+        except RuntimeError as exc:
+            if "density-bounded" in str(exc):
+                ax_R.text(
+                    0.5, 0.5, rf"$w={w}$: density-bounded",
+                    transform=ax_R.transAxes, ha="center", va="center",
+                    fontsize=8, color=color,
+                )
+                continue
+            raise
         t_Myr = sol.t / MYR
         R_pc = sol.y[0] / PC
         ax_R.loglog(t_Myr, R_pc, color=color, lw=2.0, label=lbl)

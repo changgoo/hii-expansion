@@ -62,10 +62,16 @@ class HIIRegion:
         n: float | Callable[[float], float],
         alpha_B: float | None = None,
         T: float = 1.0e4,
+        integration_points: list[float] | None = None,
+        max_radius: float | None = None,
     ) -> None:
         self.Q = Q
         self.T = T
         self.alpha_B: float = alpha_B if alpha_B is not None else alpha_B_case_B(T)
+        self._integration_points: list[float] = integration_points or []
+        # Default max radius: 300 pc (ISM gas scale height; larger R_st is unphysical)
+        from .constants import PC
+        self.max_radius: float = max_radius if max_radius is not None else 300.0 * PC
 
         if callable(n):
             self._n_func: Callable[[float], float] = n
@@ -122,6 +128,14 @@ class HIIRegion:
             r_st = stromgren_radius_uniform(self.Q, self._n_const, self.alpha_B)
         else:
             r_st = self._stromgren_radius_numeric()
+
+        if r_st > self.max_radius:
+            from .constants import PC
+            msg = (
+                f"Stromgren radius ({r_st/PC:.1f} pc) exceeds max_radius "
+                f"({self.max_radius/PC:.0f} pc): treating as density-bounded"
+            )
+            raise RuntimeError(msg)
 
         self._r_st = r_st
         return r_st
@@ -206,9 +220,16 @@ class HIIRegion:
     def _recomb_rate(self, R: float) -> float:
         """Cumulative recombination rate inside radius *R* [s⁻¹].
 
-        Computes ``α_B · 4π ∫₀^R n(r)² r² dr``.
+        Computes ``α_B · 4π ∫₀^R n(r)² r² dr``.  Returns ``np.inf`` if the
+        integrand overflows (signals that *R* is unphysically large).
         """
-        result, _ = integrate.quad(self._recomb_integrand, 0.0, R, limit=200)
+        pts = [p for p in self._integration_points if 0.0 < p < R] or None
+        try:
+            result, _ = integrate.quad(
+                self._recomb_integrand, 0.0, R, limit=500, points=pts
+            )
+        except OverflowError:
+            return np.inf
         return 4.0 * np.pi * self.alpha_B * result
 
     def _stromgren_objective(self, R: float) -> float:
@@ -219,8 +240,22 @@ class HIIRegion:
         from .constants import PC
 
         r_hi = PC
-        while self._recomb_rate(r_hi) < self.Q:
+        for _ in range(300):
+            rate = self._recomb_rate(r_hi)
+            if np.isinf(rate):
+                # r_hi grew so large it overflowed without rate reaching Q:
+                # the medium is density-bounded (total recombination < Q).
+                msg = (
+                    "No finite Stromgren radius: medium is density-bounded "
+                    "(total recombination rate < Q)"
+                )
+                raise RuntimeError(msg)
+            if rate >= self.Q:
+                break
             r_hi *= 10.0
+        else:
+            msg = "Could not bracket Stromgren radius within 300 steps"
+            raise RuntimeError(msg)
 
         return optimize.brentq(self._stromgren_objective, 0.0, r_hi)
 
@@ -252,7 +287,10 @@ class HIIRegion:
 
         ``M_sh = 4π m_H ∫₀^R n(r) r² dr``
         """
-        result, _ = integrate.quad(self._mass_integrand, 0.0, R, limit=200)
+        pts = [p for p in self._integration_points if 0.0 < p < R] or None
+        result, _ = integrate.quad(
+            self._mass_integrand, 0.0, R, limit=500, points=pts
+        )
         return 4.0 * np.pi * M_H * result
 
     def _ode_rhs(self, _t: float, y: np.ndarray) -> np.ndarray:
