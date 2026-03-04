@@ -27,5 +27,5 @@ htmlcov/
 .idea/
 .vscode/
 
-# Generated figures
+# Generated figures (kept in figures/ for README; exclude local script output)
 python/*.png
