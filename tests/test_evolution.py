@@ -236,40 +236,53 @@ class TestModifiedSpitzer:
 
 
 class TestRamPressure:
-    """Tests for evolve(ram_pressure=False)."""
+    """Tests for evolve(ram_pressure=False).
 
-    def _run(self, ram_pressure: bool) -> object:
-        hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
-        t_end = 50.0 * T_DYN
-        sol = hii.evolve((0.0, t_end), n_eval=500, rtol=1e-10, atol=0.0,
-                         ram_pressure=ram_pressure)
-        return hii, sol
+    Key physics: F_ram/F_th = 1 always along the Spitzer quasi-static
+    trajectory (it IS the quasi-static balance P_in = n mH v²), so the
+    no-ram ODE can never recover the Spitzer solution.  Instead it coasts
+    at constant velocity (R ∝ t) because P_in ∝ R^{-3/2} delivers a finite
+    total impulse with no restoring deceleration.  This holds for both the
+    D-critical IC (v0=c_II) and the static IC (v0=0).
+    """
 
     def test_no_ram_starts_at_rst(self) -> None:
         """R(t=0) = R_st with ram_pressure=False."""
-        hii, sol = self._run(ram_pressure=False)
+        hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
+        sol = hii.evolve((0.0, T_DYN), n_eval=10, rtol=1e-10, atol=0.0,
+                         ram_pressure=False)
         assert sol.y[0, 0] == pytest.approx(hii.stromgren_radius(), rel=1e-10)
 
-    def test_no_ram_coasts_at_late_times(self) -> None:
-        """Without ram pressure, the shell eventually coasts at constant velocity.
-
-        P_in ∝ R^{-3/2} delivers a finite total impulse, so the shell coasts
-        at constant velocity: R ∝ t (log-log slope → 1) at late times.
-        With ram pressure the ongoing deceleration gives R ∝ t^(4/7) instead.
-        """
+    def test_no_ram_coasts_dcrit(self) -> None:
+        """No-ram ODE with D-critical IC coasts: R ∝ t (slope → 1) at late times."""
         hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
         t_end = 100.0 * T_DYN
         sol = hii.evolve((0.0, t_end), n_eval=1000, rtol=1e-10, atol=0.0,
                          ram_pressure=False)
         mask = sol.t > 0.5 * t_end
-        log_t = np.log(sol.t[mask])
-        log_R = np.log(sol.y[0, mask])
-        slope = np.polyfit(log_t, log_R, 1)[0]
+        slope = np.polyfit(np.log(sol.t[mask]), np.log(sol.y[0, mask]), 1)[0]
+        assert slope == pytest.approx(1.0, rel=0.05)
+
+    def test_no_ram_coasts_static_ic(self) -> None:
+        """No-ram ODE with static IC (v0=0) also coasts (slope → 1).
+
+        Even starting from rest, the unbalanced P_in at R_st accelerates the
+        shell to v >> c_II within ~T_dyn; without ram deceleration it coasts.
+        """
+        hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
+        t_end = 100.0 * T_DYN
+        sol = hii.evolve((0.0, t_end), n_eval=1000, rtol=1e-10, atol=1e-3,
+                         ram_pressure=False, v0=0.0)
+        mask = sol.t > 0.5 * t_end
+        slope = np.polyfit(np.log(sol.t[mask]), np.log(sol.y[0, mask]), 1)[0]
         assert slope == pytest.approx(1.0, rel=0.05)
 
     def test_no_ram_faster_than_with_ram(self) -> None:
         """Without ram deceleration, the shell expands faster at late times."""
-        _, sol_no_ram   = self._run(ram_pressure=False)
-        _, sol_with_ram = self._run(ram_pressure=True)
-        # At the final time, R(no_ram) > R(with_ram)
+        hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
+        t_end = 50.0 * T_DYN
+        sol_no_ram   = hii.evolve((0.0, t_end), n_eval=500, rtol=1e-10, atol=0.0,
+                                  ram_pressure=False)
+        sol_with_ram = hii.evolve((0.0, t_end), n_eval=500, rtol=1e-10, atol=0.0,
+                                  ram_pressure=True)
         assert sol_no_ram.y[0, -1] > sol_with_ram.y[0, -1]
