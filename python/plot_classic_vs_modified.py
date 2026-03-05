@@ -57,7 +57,7 @@ R_ref_pc = R_anchor * (t_ref_Myr / t_Myr_anchor) ** (4.0 / 7.0)
 # ---------------------------------------------------------------------------
 # Plot
 # ---------------------------------------------------------------------------
-fig, axes = plt.subplots(3, 1, figsize=(6, 9), sharex=True)
+fig, axes = plt.subplots(3, 1, figsize=(6, 6), sharex=True)
 
 t_c = sol_classic.t  / MYR
 t_m = sol_modified.t / MYR
