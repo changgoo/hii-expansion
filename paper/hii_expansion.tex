@@ -227,8 +227,9 @@ ODE equation in (\ref{eq:ode_classic}) reduces to \citep{Spitzer1978}
 with exact solution
 \begin{equation}
   \label{eq:spitzer}
-  R(t) = R_\mathrm{st}\left[1 + \frac{7}{4}\frac{c_\mathrm{II}}{R_\mathrm{st}}\,t\right]^{4/7}.
+  R(t) = R_\mathrm{st}\left[1 + \frac{7}{4}\frac{t}{t_\mathrm{dyn}}\right]^{4/7},
 \end{equation}
+where the dynamical time is $t_\mathrm{dyn} \equiv R_\mathrm{st}/c_\mathrm{II}$.
 At late times the asymptotic power law is $R \propto t^{4/7}$.
 
 The numerical ODE integrator (\texttt{scipy.integrate.solve\_ivp}, RK45,
@@ -237,15 +238,13 @@ Equation~(\ref{eq:spitzer}) to within $\sim7\%$ at late times; the
 residual arises because the quasi-static solution sets $\dot{v}=0$,
 whereas the full ODE retains the inertial term $M_\mathrm{sh}\dot{v}$.
 
-\citet{HosokawaInutsuka2006} propose an empirical correction that better
-matches numerical results: replace $t_\mathrm{dyn}=R_\mathrm{st}/c_\mathrm{II}$
-with
+\citet{HosokawaInutsuka2006} propose the purely empirical replacement
 \begin{equation}
   \label{eq:tdyn_HI}
   t_\mathrm{dyn} = \frac{\sqrt{3}}{2}\frac{R_\mathrm{st}}{c_\mathrm{II}},
 \end{equation}
-which can be obtained from the self-consistent definition
-$t_\mathrm{dyn} = R_\mathrm{sp}(0)/\dot{R}_\mathrm{sp}(0)$.
+which, when substituted into Equation~(\ref{eq:spitzer}), gives better
+agreement with numerical solutions (see Figure~\ref{fig:constant}).
 
 \subsection{Power-law density profiles}
 
