@@ -208,7 +208,7 @@ class TestModifiedSpitzer:
         assert np.all(sol.y[2] >= 0)
 
     def test_modified_mass_less_than_classic(self) -> None:
-        """Modified shell mass is always <= classic (initial Stromgren mass excluded)."""
+        """Modified shell mass is always <= classic (Stromgren mass excluded)."""
         hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
         sol_c = hii.evolve((0.0, 50.0 * T_DYN), n_eval=300, rtol=1e-10, atol=0.0)
         sol_m = hii.evolve_modified(

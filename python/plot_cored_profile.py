@@ -13,9 +13,8 @@ import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 import numpy as np
 
-from hii_expansion import HIIRegion, alpha_B_case_B
+from hii_expansion import HIIRegion, alpha_B_case_B, stromgren_radius_uniform
 from hii_expansion.constants import K_B, M_H, PC, YR
-from hii_expansion import stromgren_radius_uniform
 
 # ---------------------------------------------------------------------------
 # Parameters
@@ -116,11 +115,18 @@ for row, r0 in enumerate(R0_VALUES):
 
     # ---- legend on first panel only ----
     if row == 0:
-        _solid = mlines.Line2D([], [], color="gray", lw=2.0, alpha=0.5, label="Classic ODE")
-        _dash  = mlines.Line2D([], [], color="gray", lw=1.5, ls="--", label="Modified ODE")
+        _solid = mlines.Line2D(
+            [], [], color="gray", lw=2.0, alpha=0.5, label="Classic ODE"
+        )
+        _dash = mlines.Line2D(
+            [], [], color="gray", lw=1.5, ls="--", label="Modified ODE"
+        )
         handles, labels = axes[0].get_legend_handles_labels()
-        axes[0].legend(handles + [_solid, _dash], labels + ["Classic ODE", "Modified ODE"],
-                       fontsize=8, loc="upper left")
+        axes[0].legend(
+            handles + [_solid, _dash],
+            labels + ["Classic ODE", "Modified ODE"],
+            fontsize=8, loc="upper left",
+        )
 
 axes[-1].set_xlabel("Time [Myr]")
 

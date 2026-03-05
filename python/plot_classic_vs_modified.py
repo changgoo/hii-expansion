@@ -65,7 +65,9 @@ t_m = sol_modified.t / MYR
 # --- Top: R(t) ---
 ax = axes[0]
 ax.loglog(t_c, sol_classic.y[0]  / PC, color="C0", lw=2.0, label="Classic ODE")
-ax.loglog(t_m, sol_modified.y[0] / PC, color="C1", lw=2.0, ls="--", label="Modified ODE")
+ax.loglog(
+    t_m, sol_modified.y[0] / PC, color="C1", lw=2.0, ls="--", label="Modified ODE"
+)
 ax.loglog(t_c, R_sp / PC, color="gray", lw=1.5, ls=":", label="Spitzer analytic")
 ax.loglog(t_ref_Myr, R_ref_pc, color="k", lw=1.0, ls="-.", label=r"$\propto t^{4/7}$")
 ax.axhline(R_st / PC, color="gray", lw=0.7, ls="--")
@@ -83,7 +85,9 @@ ax.set_title(
 # --- Middle: v(t) ---
 ax = axes[1]
 ax.loglog(t_c, sol_classic.y[1]  / KM_S, color="C0", lw=2.0, label="Classic ODE")
-ax.loglog(t_m, sol_modified.y[1] / KM_S, color="C1", lw=2.0, ls="--", label="Modified ODE")
+ax.loglog(
+    t_m, sol_modified.y[1] / KM_S, color="C1", lw=2.0, ls="--", label="Modified ODE"
+)
 ax.axhline(c_II / KM_S, color="gray", lw=0.7, ls="--")
 ax.text(t_c[1], c_II / KM_S * 1.05,
         rf"$c_{{\rm II}} = {c_II/KM_S:.1f}$ km/s", color="gray", fontsize=8)
@@ -93,7 +97,9 @@ ax.legend(fontsize=8, loc="upper right")
 # --- Bottom: M_sh(t) ---
 ax = axes[2]
 ax.loglog(t_c, sol_classic.y[2]  / M_SUN, color="C0", lw=2.0, label="Classic ODE")
-ax.loglog(t_m, sol_modified.y[2] / M_SUN, color="C1", lw=2.0, ls="--", label="Modified ODE")
+ax.loglog(
+    t_m, sol_modified.y[2] / M_SUN, color="C1", lw=2.0, ls="--", label="Modified ODE"
+)
 ax.set_ylabel(r"$M_{\rm sh}\;[M_\odot]$")
 ax.set_xlabel("Time [Myr]")
 ax.legend(fontsize=8, loc="upper left")
