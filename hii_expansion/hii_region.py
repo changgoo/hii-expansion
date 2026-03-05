@@ -145,7 +145,6 @@ class HIIRegion:
         t_span: tuple[float, float],
         n_eval: int = 500,
         v0: float | None = None,
-        ram_pressure: bool = True,
         **ivp_kwargs: object,
     ) -> OdeResult:
         """Evolve the HII region from the Stromgren sphere forward in time.
@@ -197,9 +196,8 @@ class HIIRegion:
 
         t_eval = np.linspace(t_span[0], t_span[1], n_eval)
 
-        rhs = lambda t, y: self._ode_rhs(t, y, ram_pressure=ram_pressure)  # noqa: E731
         sol = integrate.solve_ivp(
-            rhs,
+            self._ode_rhs,
             t_span,
             [R0, v_init, M_sh_0],
             t_eval=t_eval,
@@ -217,7 +215,6 @@ class HIIRegion:
         t_span: tuple[float, float],
         n_eval: int = 500,
         v0: float | None = None,
-        ram_pressure: bool = True,
         **ivp_kwargs: object,
     ) -> OdeResult:
         """Evolve the HII region using the modified thin-shell ODE.
@@ -244,9 +241,8 @@ class HIIRegion:
 
         t_eval = np.linspace(t_span[0], t_span[1], n_eval)
 
-        rhs = lambda t, y: self._ode_rhs_modified(t, y, ram_pressure=ram_pressure)  # noqa: E731
         sol = integrate.solve_ivp(
-            rhs,
+            self._ode_rhs_modified,
             t_span,
             [R0, v_init, M_sh_0],
             t_eval=t_eval,
@@ -342,25 +338,20 @@ class HIIRegion:
         )
         return 4.0 * np.pi * M_H * result
 
-    def _ode_rhs(
-        self, _t: float, y: np.ndarray, *, ram_pressure: bool = True
-    ) -> np.ndarray:
+    def _ode_rhs(self, _t: float, y: np.ndarray) -> np.ndarray:
         """RHS of the classic thin-shell ODE: state = [R, v, M_sh]."""
         R, v, M_sh = y
         n_R = self._n_func(R)
         P_in = self._interior_pressure(R)
         area = 4.0 * np.pi * R**2
 
-        ram = n_R * M_H * v**2 if ram_pressure else 0.0
         dR_dt = v
-        dv_dt = area * (P_in - ram) / M_sh
+        dv_dt = area * (P_in - n_R * M_H * v**2) / M_sh
         dM_sh_dt = area * n_R * M_H * v
 
         return np.array([dR_dt, dv_dt, dM_sh_dt])
 
-    def _ode_rhs_modified(
-        self, _t: float, y: np.ndarray, *, ram_pressure: bool = True
-    ) -> np.ndarray:
+    def _ode_rhs_modified(self, _t: float, y: np.ndarray) -> np.ndarray:
         """RHS of the modified thin-shell ODE: state = [R, v, M_sh].
 
         Two corrections over the classic ODE:
@@ -389,10 +380,9 @@ class HIIRegion:
         n_i = self._n_ionized(R)
         P_in = self._interior_pressure(R)
 
-        ram = n_R * M_H * v**2 if ram_pressure else 0.0
         dR_dt = v
         M_sh_safe = max(M_sh, 1e-100)  # force is 0 at t=0, so dv/dt → 0
-        dv_dt = 4.0 * np.pi * R**2 * (P_in - ram) / M_sh_safe
+        dv_dt = 4.0 * np.pi * R**2 * (P_in - n_R * M_H * v**2) / M_sh_safe
         dM_sh_dt = 2.0 * np.pi * R**2 * M_H * v * (2.0 * n_R - n_i)
 
         return np.array([dR_dt, dv_dt, dM_sh_dt])
