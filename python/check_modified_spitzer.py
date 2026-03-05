@@ -40,5 +40,7 @@ print("M_sh check passed: modified <= classic at all times")
 
 # Check M_sh_modified starts negligibly small (seed << classic initial M_sh)
 ratio = sol_m.y[2, 0] / sol_c.y[2, 0]
-assert ratio < 1e-5, f"Modified M_sh seed should be negligible vs classic: ratio={ratio:.2e}"
+assert ratio < 1e-5, (
+    f"Modified M_sh seed should be negligible vs classic: ratio={ratio:.2e}"
+)
 print(f"Initial M_sh check passed: modified seed / classic = {ratio:.2e}")

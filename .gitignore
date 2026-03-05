@@ -37,6 +37,7 @@ paper/*.blg
 paper/*.log
 paper/*.out
 paper/*.pdf
+!paper/hii_expansion.pdf
 paper/*.toc
 paper/*.fls
 paper/*.fdb_latexmk

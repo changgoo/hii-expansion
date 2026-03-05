@@ -63,7 +63,10 @@ R_ref = R_sp_pc[i_anchor] * (t_ref / t_Myr[i_anchor]) ** (4.0 / 7.0)
 fig, ax = plt.subplots(figsize=(6, 4.5))
 
 ax.loglog(t_Myr, R_num_pc, color="C0", lw=2.0, label="Classic ODE")
-ax.loglog(sol_mod.t / MYR, sol_mod.y[0] / PC, color="C1", lw=2.0, ls="--", label="Modified ODE")
+ax.loglog(
+    sol_mod.t / MYR, sol_mod.y[0] / PC,
+    color="C1", lw=2.0, ls="--", label="Modified ODE",
+)
 ax.loglog(t_Myr, R_sp_pc, color="gray", lw=1.5, ls=":", label="Spitzer (1978) analytic")
 ax.loglog(t_ref, R_ref, color="k", lw=1.2, ls="-.", label=r"$\propto t^{4/7}$")
 
@@ -87,6 +90,8 @@ ax.set_title(
 ax.legend(fontsize=9)
 fig.tight_layout()
 
-out = Path(__file__).parent.parent / "figures" / "constant_density.png"
-fig.savefig(out, dpi=150)
-print(f"Saved {out}")
+fig_dir = Path(__file__).parent.parent / "figures"
+for ext in ("pdf", "png"):
+    out = fig_dir / f"constant_density.{ext}"
+    fig.savefig(out, dpi=150 if ext == "png" else None)
+    print(f"Saved {out}")

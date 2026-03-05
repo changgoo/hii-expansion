@@ -14,6 +14,7 @@ Run from the project root:
 
 from pathlib import Path
 
+import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -100,7 +101,6 @@ ax.set_title(
     rf"Power-law medium $n(r) = n_0\,(r_0/r)^w$,  "
     rf"$n_0 = {n0:.0f}\ \mathrm{{cm}}^{{-3}}$,  $r_0 = 1$ pc"
 )
-import matplotlib.lines as mlines
 _solid = mlines.Line2D([], [], color="gray", lw=2.0, label="Classic ODE")
 _dash  = mlines.Line2D([], [], color="gray", lw=1.5, ls="--", label="Modified ODE")
 handles, labels = ax.get_legend_handles_labels()
@@ -119,6 +119,8 @@ ax.text(
 
 fig.tight_layout()
 
-out = Path(__file__).parent.parent / "figures" / "powerlaw_density.png"
-fig.savefig(out, dpi=150)
-print(f"Saved {out}")
+fig_dir = Path(__file__).parent.parent / "figures"
+for ext in ("pdf", "png"):
+    out = fig_dir / f"powerlaw_density.{ext}"
+    fig.savefig(out, dpi=150 if ext == "png" else None)
+    print(f"Saved {out}")

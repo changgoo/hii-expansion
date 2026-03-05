@@ -13,9 +13,8 @@ import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 import numpy as np
 
-from hii_expansion import HIIRegion, alpha_B_case_B
+from hii_expansion import HIIRegion, alpha_B_case_B, stromgren_radius_uniform
 from hii_expansion.constants import K_B, M_H, PC, YR
-from hii_expansion import stromgren_radius_uniform
 
 # ---------------------------------------------------------------------------
 # Parameters
@@ -25,7 +24,7 @@ n0 = 100.0        # central density [cm⁻³]
 T = 1.0e4         # temperature [K]
 alpha_B = alpha_B_case_B(T)
 
-R0_VALUES = [1.0 * PC, 5.0 * PC, 10.0 * PC]   # core radii [cm]
+R0_VALUES = [1.0 * PC, 5.0 * PC]   # core radii [cm]
 W_VALUES = [1.0, 1.5, 2.0]
 
 MYR = 1.0e6 * YR
@@ -47,7 +46,7 @@ colors = plt.cm.plasma(np.linspace(0.1, 0.75, len(W_VALUES)))
 # ---------------------------------------------------------------------------
 # Layout: 3 rows × 1 column
 # ---------------------------------------------------------------------------
-fig, axes = plt.subplots(3, 1, figsize=(8, 11), sharex=True)
+fig, axes = plt.subplots(2, 1, figsize=(8, 8), sharex=True)
 
 for row, r0 in enumerate(R0_VALUES):
     ax_R = axes[row]
@@ -56,7 +55,7 @@ for row, r0 in enumerate(R0_VALUES):
     solutions: list[tuple[np.ndarray, np.ndarray, float]] = []
 
     # ---- inset for density profile ----
-    ax_in = ax_R.inset_axes([0.55, 0.05, 0.42, 0.42])
+    ax_in = ax_R.inset_axes([0.05, 0.55, 0.42, 0.42])
     ax_in.axvline(r0_pc, color="gray", lw=0.8, ls="--")
     ax_in.text(r0_pc * 1.12, n0 * 0.35, rf"$r_0={r0_pc:.0f}$ pc",
                color="gray", fontsize=7)
@@ -114,13 +113,20 @@ for row, r0 in enumerate(R0_VALUES):
     ax_in.set_ylabel(r"$n$ [cm$^{-3}$]", fontsize=7)
     ax_in.tick_params(labelsize=6)
 
-    # ---- legend on first panel only ----
-    if row == 0:
-        _solid = mlines.Line2D([], [], color="gray", lw=2.0, alpha=0.5, label="Classic ODE")
-        _dash  = mlines.Line2D([], [], color="gray", lw=1.5, ls="--", label="Modified ODE")
-        handles, labels = axes[0].get_legend_handles_labels()
-        axes[0].legend(handles + [_solid, _dash], labels + ["Classic ODE", "Modified ODE"],
-                       fontsize=8, loc="upper left")
+    # ---- legend on r0=5pc panel only ----
+    if row == 1:
+        _solid = mlines.Line2D(
+            [], [], color="gray", lw=2.0, alpha=0.5, label="Classic ODE"
+        )
+        _dash = mlines.Line2D(
+            [], [], color="gray", lw=1.5, ls="--", label="Modified ODE"
+        )
+        handles, labels = ax_R.get_legend_handles_labels()
+        ax_R.legend(
+            handles + [_solid, _dash],
+            labels + ["Classic ODE", "Modified ODE"],
+            fontsize=8, loc="lower right",
+        )
 
 axes[-1].set_xlabel("Time [Myr]")
 
@@ -132,6 +138,8 @@ fig.suptitle(
 )
 fig.tight_layout()
 
-out = Path(__file__).parent.parent / "figures" / "cored_density.png"
-fig.savefig(out, dpi=150)
-print(f"Saved {out}")
+fig_dir = Path(__file__).parent.parent / "figures"
+for ext in ("pdf", "png"):
+    out = fig_dir / f"cored_density.{ext}"
+    fig.savefig(out, dpi=150 if ext == "png" else None)
+    print(f"Saved {out}")
