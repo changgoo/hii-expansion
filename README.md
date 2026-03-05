@@ -20,6 +20,16 @@ n_i = sqrt(3Q / (4π α_B R³)),    P_in = 2 n_i k_B T
 
 The ODE state vector `[R, v, M_sh]` is integrated forward from the initial Stromgren radius using `scipy.integrate.solve_ivp`. For constant density, the asymptotic solution is the [Spitzer (1978)](https://ui.adsabs.harvard.edu/abs/1978ppim.book.....S) power law `R ∝ t^(4/7)`; for a power-law ambient density `n ∝ r^{-w}`, the late-time slope is `R ∝ t^{4/(7-2w)}` ([Franco et al. 1990](https://ui.adsabs.harvard.edu/abs/1990ApJ...349..126F)).
 
+A **modified Spitzer ODE** (`evolve_modified`) applies two corrections over the classic formulation:
+
+1. **Zero initial shell mass** — gas already ionized within R_st carries no shell momentum.
+2. **Ionization mass exchange** — as the ionization front advances, gas continuously transfers from the shell into the bubble interior:
+   ```
+   dM_sh/dt = 2π R² m_H v [2 n(R) − n_i(R)]
+   ```
+
+The modified solution yields a lighter shell at all times while converging to the same `R ∝ t^(4/7)` asymptote.
+
 ## Installation
 
 ```bash
@@ -38,12 +48,15 @@ Q  = 1e49    # ionizing photon rate [s⁻¹]
 n0 = 100.0   # ambient density [cm⁻³]
 T  = 1e4     # temperature [K]
 
-# Uniform density — numeric ODE
+# Uniform density — classic ODE
 hii = HIIRegion(Q=Q, n=n0, T=T)
-sol = hii.evolve((0.0, 50 * hii.stromgren_radius() / hii.c_II),
-                 n_eval=500, rtol=1e-10, atol=0.0)
+t_span = (0.0, 50 * hii.stromgren_radius() / hii.c_II)
+sol = hii.evolve(t_span, n_eval=500, rtol=1e-10, atol=0.0)
 # sol.t  → time array [s]
 # sol.y[0] → R(t) [cm]
+
+# Modified Spitzer ODE (zero initial shell mass + ionization mass exchange)
+sol_mod = hii.evolve_modified(t_span, n_eval=500, rtol=1e-10, atol=0.0)
 
 # Spitzer analytic solution at the same times
 R_sp = spitzer_solution(Q, n0, T, sol.t)
@@ -85,13 +98,20 @@ Flat core at `r < r₀`, power-law decline at `r > r₀`. For small cores (`r₀
 
 ![Cored density](figures/cored_density.png)
 
+### Classic vs. modified Spitzer — uniform density
+
+Side-by-side comparison of `R(t)`, `v(t)`, and `M_sh(t)` for the classic and modified ODEs. The modified shell is consistently lighter; both solutions converge to the same `R ∝ t^(4/7)` at late times.
+
+![Classic vs modified](figures/classic_vs_modified.png)
+
 ## Running the example scripts
 
 ```bash
-python python/plot_constant_density.py   # → python/constant_density.png
-python python/plot_powerlaw.py           # → python/powerlaw_density.png
-python python/plot_cored_profile.py      # → python/cored_density.png
-python python/report_cored_stromgren.py  # Stromgren radius table
+python python/plot_constant_density.py    # → figures/constant_density.png
+python python/plot_powerlaw.py            # → figures/powerlaw_density.png
+python python/plot_cored_profile.py       # → figures/cored_density.png
+python python/plot_classic_vs_modified.py # → figures/classic_vs_modified.png
+python python/report_cored_stromgren.py   # Stromgren radius table
 ```
 
 ## Tests
@@ -100,7 +120,7 @@ python python/report_cored_stromgren.py  # Stromgren radius table
 pytest
 ```
 
-34 tests covering recombination coefficients, Stromgren radius scaling laws, Spitzer analytic solution, and ODE evolution.
+42 tests covering recombination coefficients, Stromgren radius scaling laws, Spitzer analytic solution, classic ODE evolution, and modified Spitzer ODE.
 
 ## References
 
