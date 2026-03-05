@@ -113,19 +113,19 @@ for row, r0 in enumerate(R0_VALUES):
     ax_in.set_ylabel(r"$n$ [cm$^{-3}$]", fontsize=7)
     ax_in.tick_params(labelsize=6)
 
-    # ---- legend on first panel only ----
-    if row == 0:
+    # ---- legend on r0=5pc panel only ----
+    if row == 1:
         _solid = mlines.Line2D(
             [], [], color="gray", lw=2.0, alpha=0.5, label="Classic ODE"
         )
         _dash = mlines.Line2D(
             [], [], color="gray", lw=1.5, ls="--", label="Modified ODE"
         )
-        handles, labels = axes[0].get_legend_handles_labels()
-        axes[0].legend(
+        handles, labels = ax_R.get_legend_handles_labels()
+        ax_R.legend(
             handles + [_solid, _dash],
             labels + ["Classic ODE", "Modified ODE"],
-            fontsize=8, loc="upper left",
+            fontsize=8, loc="lower right",
         )
 
 axes[-1].set_xlabel("Time [Myr]")
