@@ -481,22 +481,30 @@ density-bounded (Table~\ref{tab:cored}) and are excluded.
 \label{sec:results_comparison}
 
 Figure~\ref{fig:comparison} compares the classic and modified ODE systems
-for uniform density over $50\,T_\mathrm{dyn}$.  The top panel shows
-$R(t)$: the two solutions are nearly indistinguishable, confirming that the
-shell-mass correction has negligible effect on the radius evolution.  The
-middle panel shows $v(t)$: again nearly identical.  The bottom panel shows
-$M_\mathrm{sh}(t)$: the modified ODE gives a systematically lower shell mass at all
-times, as expected from the zero initial shell mass and the continuous
-mass transfer to the ionized interior.
+for uniform density over $50\,T_\mathrm{dyn}$, each with two initial
+conditions: the D-critical condition $v_0=c_\mathrm{II}$ and the static
+condition $v_0=0$.  The top panel shows $R(t)$: the D-critical and static
+cases converge to the same $t^{4/7}$ power law at late times, but the $v_0=0$
+shells expand more slowly at early times.  The middle panel shows $v(t)$: the
+$v_0=0$ cases accelerate from rest, reach a peak below $c_\mathrm{II}$, then
+join the decelerating power law.  The bottom panel shows
+$M_\mathrm{sh}(t)$: the classic ODE initialises with the full Stromgren
+mass regardless of $v_0$; the modified ODE starts from near-zero shell mass in
+both cases, reflecting that the Stromgren gas is already ionized.  At late
+times all four curves converge, confirming that the asymptotic evolution is
+insensitive to both the initial velocity and the shell-mass formulation.
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{../figures/classic_vs_modified.pdf}
-  \caption{Comparison of the classic (solid, blue) and modified (dashed,
-    orange) thin-shell ODE solutions for uniform density.
+  \caption{Classic (blue) and modified (orange) thin-shell ODE solutions for
+    uniform density, with D-critical initial velocity $v_0=c_\mathrm{II}$
+    (solid) and static initial velocity $v_0=0$ (dashed).
     Top to bottom: shell radius $R(t)$, shell velocity $v(t)$, shell
-    mass $M_\mathrm{sh}(t)$.  The radius and velocity agree closely;
-    the shell mass in the modified solution is lower throughout.}
+    mass $M_\mathrm{sh}(t)$.  All four solutions converge to the same
+    $t^{4/7}$ power law at late times.  The shell mass in the modified
+    ODE is lower throughout, reflecting the zero initial shell mass and
+    continuous mass transfer to the ionized interior.}
   \label{fig:comparison}
 \end{figure}
 
