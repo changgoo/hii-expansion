@@ -88,7 +88,7 @@ for col, r0 in enumerate(R0_VALUES):
             raise
         t_Myr = sol.t / MYR
         R_pc = sol.y[0] / PC
-        ax_R.loglog(t_Myr, R_pc, color=color, lw=2.0, label=lbl)
+        ax_R.loglog(t_Myr, R_pc, color=color, lw=2.0, alpha=0.5, label=lbl)
         try:
             sol_mod = hii.evolve_modified((0.0, t_end), n_eval=600, rtol=1e-8)
             ax_R.loglog(sol_mod.t / MYR, sol_mod.y[0] / PC, color=color, lw=1.5, ls="--")

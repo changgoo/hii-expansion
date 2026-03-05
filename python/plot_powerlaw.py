@@ -73,7 +73,7 @@ for w, color in zip(W_VALUES, colors):
 
     slope = 4.0 / (7.0 - 2.0 * w)   # Franco et al. (1990)
     lbl = rf"$w={w}$  (slope $\to {slope:.3f}$)"
-    ax.loglog(t_Myr, R_pc, color=color, lw=2.0, label=lbl)
+    ax.loglog(t_Myr, R_pc, color=color, lw=2.0, alpha=0.5, label=lbl)
 
     solutions.append((t_Myr, R_pc, slope))
 
