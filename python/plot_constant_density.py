@@ -41,6 +41,10 @@ R_num = sol.y[0]
 # Analytic Spitzer solution at the same time points
 R_sp = spitzer_solution(Q, n0, T, t_num, alpha_B=alpha_B)
 
+# Empirical modification: t_dyn = sqrt(3)/2 * R_st/c_II  (factor 2/sqrt(3) on c_II/R_st)
+_fac = (7.0/4.0) * (2.0/np.sqrt(3.0)) * (c_II/R_st)
+R_sp_emp = R_st * (1.0 + _fac * t_num) ** (4.0/7.0)
+
 # ---------------------------------------------------------------------------
 # Convert to physical units (Myr, pc)
 # ---------------------------------------------------------------------------
@@ -68,6 +72,12 @@ ax.loglog(
     color="C1", lw=2.0, ls="--", label="Modified ODE",
 )
 ax.loglog(t_Myr, R_sp_pc, color="gray", lw=1.5, ls=":", label="Spitzer (1978) analytic")
+ax.loglog(
+    t_Myr, R_sp_emp / PC,
+    color="C2", lw=1.5, ls=":",
+    label=(r"Spitzer (empirical, "
+           r"$t_{\rm dyn}=\frac{\sqrt{3}}{2}\frac{R_{\rm st}}{c_{\rm II}}$)"),
+)
 ax.loglog(t_ref, R_ref, color="k", lw=1.2, ls="-.", label=r"$\propto t^{4/7}$")
 
 # Mark the initial Stromgren radius

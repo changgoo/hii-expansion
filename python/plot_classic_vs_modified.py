@@ -39,10 +39,14 @@ c_II = hii.c_II
 T_dyn = R_st / c_II
 
 t_end = 50.0 * T_dyn
-ivp_kw = dict(rtol=1e-10, atol=0.0)
+n_eval = int(t_end / MYR / 0.001) + 1   # ~0.001 Myr time step
+ivp_kw    = dict(rtol=1e-10, atol=0.0)
+ivp_kw_v0 = dict(rtol=1e-10, atol=1e-20)  # atol != 0 required when v0=0
 
-sol_classic  = hii.evolve(         (0.0, t_end), n_eval=1000, **ivp_kw)
-sol_modified = hii.evolve_modified((0.0, t_end), n_eval=1000, **ivp_kw)
+sol_classic   = hii.evolve(         (0.0, t_end), n_eval=n_eval, **ivp_kw)
+sol_modified  = hii.evolve_modified((0.0, t_end), n_eval=n_eval, **ivp_kw)
+sol_classic0  = hii.evolve(         (0.0, t_end), n_eval=n_eval, v0=0.0, **ivp_kw_v0)
+sol_modified0 = hii.evolve_modified((0.0, t_end), n_eval=n_eval, v0=0.0, **ivp_kw_v0)
 
 # Analytic Spitzer solution
 R_sp = spitzer_solution(Q, n0, T, sol_classic.t, alpha_B=alpha_B)
@@ -59,22 +63,28 @@ R_ref_pc = R_anchor * (t_ref_Myr / t_Myr_anchor) ** (4.0 / 7.0)
 # ---------------------------------------------------------------------------
 fig, axes = plt.subplots(3, 1, figsize=(6, 6), sharex=True)
 
-t_c = sol_classic.t  / MYR
-t_m = sol_modified.t / MYR
+t_c  = sol_classic.t   / MYR
+t_m  = sol_modified.t  / MYR
+t_c0 = sol_classic0.t  / MYR
+t_m0 = sol_modified0.t / MYR
 
 # --- Top: R(t) ---
 ax = axes[0]
-ax.loglog(t_c, sol_classic.y[0]  / PC, color="C0", lw=2.0, label="Classic ODE")
-ax.loglog(
-    t_m, sol_modified.y[0] / PC, color="C1", lw=2.0, ls="--", label="Modified ODE"
-)
+ax.loglog(t_c,  sol_classic.y[0]   / PC, color="C0", lw=2.0, alpha=0.5,
+          label=r"Classic, $v_0=c_\mathrm{II}$")
+ax.loglog(t_c0, sol_classic0.y[0]  / PC, color="C0", lw=2.0, ls="--",
+          label=r"Classic, $v_0=0$")
+ax.loglog(t_m,  sol_modified.y[0]  / PC, color="C1", lw=2.0, alpha=0.5,
+          label=r"Modified, $v_0=c_\mathrm{II}$")
+ax.loglog(t_m0, sol_modified0.y[0] / PC, color="C1", lw=2.0, ls="--",
+          label=r"Modified, $v_0=0$")
 ax.loglog(t_c, R_sp / PC, color="gray", lw=1.5, ls=":", label="Spitzer analytic")
 ax.loglog(t_ref_Myr, R_ref_pc, color="k", lw=1.0, ls="-.", label=r"$\propto t^{4/7}$")
 ax.axhline(R_st / PC, color="gray", lw=0.7, ls="--")
 ax.text(t_c[1], R_st / PC * 1.08,
         rf"$R_{{\rm st}} = {R_st/PC:.2f}$ pc", color="gray", fontsize=8)
 ax.set_ylabel(r"$R\;[\mathrm{pc}]$")
-ax.legend(fontsize=8, loc="upper left")
+ax.legend(fontsize=7, loc="upper left")
 ax.set_title(
     rf"$Q={Q:.0e}\ \mathrm{{s}}^{{-1}}$, "
     rf"$n_0={n0:.0f}\ \mathrm{{cm}}^{{-3}}$, "
@@ -83,28 +93,43 @@ ax.set_title(
 )
 
 # --- Middle: v(t) ---
+# v0=0 cases start at v=0 which is undefined on loglog; mask out v<=0
 ax = axes[1]
-ax.loglog(t_c, sol_classic.y[1]  / KM_S, color="C0", lw=2.0, label="Classic ODE")
-ax.loglog(
-    t_m, sol_modified.y[1] / KM_S, color="C1", lw=2.0, ls="--", label="Modified ODE"
-)
+ax.loglog(t_c,  sol_classic.y[1]   / KM_S, color="C0", lw=2.0, alpha=0.5,
+          label=r"Classic, $v_0=c_\mathrm{II}$")
+_m = sol_classic0.y[1] > 0
+ax.loglog(t_c0[_m], sol_classic0.y[1, _m]  / KM_S, color="C0", lw=2.0, ls="--",
+          label=r"Classic, $v_0=0$")
+ax.loglog(t_m,  sol_modified.y[1]  / KM_S, color="C1", lw=2.0, alpha=0.5,
+          label=r"Modified, $v_0=c_\mathrm{II}$")
+_m = sol_modified0.y[1] > 0
+ax.loglog(t_m0[_m], sol_modified0.y[1, _m] / KM_S, color="C1", lw=2.0, ls="--",
+          label=r"Modified, $v_0=0$")
 ax.axhline(c_II / KM_S, color="gray", lw=0.7, ls="--")
 ax.text(t_c[1], c_II / KM_S * 1.05,
         rf"$c_{{\rm II}} = {c_II/KM_S:.1f}$ km/s", color="gray", fontsize=8)
 ax.set_ylabel(r"$v\;[\mathrm{km\,s}^{-1}]$")
-ax.legend(fontsize=8, loc="upper right")
+ax.legend(fontsize=7, loc="upper right")
 
 # --- Bottom: M_sh(t) ---
 ax = axes[2]
-ax.loglog(t_c, sol_classic.y[2]  / M_SUN, color="C0", lw=2.0, label="Classic ODE")
-ax.loglog(
-    t_m, sol_modified.y[2] / M_SUN, color="C1", lw=2.0, ls="--", label="Modified ODE"
-)
+ax.loglog(t_c,  sol_classic.y[2]   / M_SUN, color="C0", lw=2.0, alpha=0.5,
+          label=r"Classic, $v_0=c_\mathrm{II}$")
+ax.loglog(t_c0, sol_classic0.y[2]  / M_SUN, color="C0", lw=2.0, ls="--",
+          label=r"Classic, $v_0=0$")
+ax.loglog(t_m,  sol_modified.y[2]  / M_SUN, color="C1", lw=2.0, alpha=0.5,
+          label=r"Modified, $v_0=c_\mathrm{II}$")
+_m = sol_modified0.y[2] > 0
+ax.loglog(t_m0[_m], sol_modified0.y[2, _m] / M_SUN, color="C1", lw=2.0, ls="--",
+          label=r"Modified, $v_0=0$")
 ax.set_ylabel(r"$M_{\rm sh}\;[M_\odot]$")
 ax.set_xlabel("Time [Myr]")
-ax.legend(fontsize=8, loc="upper left")
+ax.legend(fontsize=7, loc="upper left")
 # tighten y-limits to the data range (skip seed-mass transient at t=0)
-_msh_max = max(sol_classic.y[2].max(), sol_modified.y[2].max()) / M_SUN
+_msh_max = max(
+    sol_classic.y[2].max(), sol_modified.y[2].max(),
+    sol_classic0.y[2].max(), sol_modified0.y[2].max(),
+) / M_SUN
 ax.set_ylim(1.0, _msh_max * 2.0)
 
 for ax in axes:

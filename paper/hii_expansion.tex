@@ -192,13 +192,18 @@ Equation~(\ref{eq:Pin}) by construction.
 The momentum of the thin shell satisfies
 \begin{equation}
   \label{eq:momentum}
-  \frac{d(M_\mathrm{sh}\dot{R})}{dt}
-    = 4\pi R^2\!\left(P_\mathrm{in} - n(R)\,m_H\,\dot{R}^2\right),
+  \frac{d(M_\mathrm{sh}\dot{R})}{dt} = 4\pi R^2\,P_\mathrm{in},
 \end{equation}
-where the second term on the right is the ram-pressure deceleration from
-sweeping up ambient gas.  Expanding the left-hand side and using the mass
-equation $\dot{M}_\mathrm{sh} = 4\pi R^2 n(R) m_H v$ (with $v\equiv\dot R$)
-yields the classic ODE system:
+where the only force is the thermal pressure drive from the ionized
+interior.  Expanding the left-hand side and using the mass equation
+$\dot{M}_\mathrm{sh} = 4\pi R^2 n(R) m_H v$ (with $v\equiv\dot{R}$) gives
+\begin{equation}
+  M_\mathrm{sh}\dot{v} = 4\pi R^2\!\left(P_\mathrm{in} - n(R)\,m_H\,v^2\right),
+\end{equation}
+where the $n(R)\,m_H\,v^2$ term arises kinematically: gas at rest is
+accelerated to the shell velocity, which decelerates the shell.  This term
+is conventionally called the \emph{ram pressure} term.  Written as an ODE
+system the classic equations are:
 \begin{align}
   \label{eq:ode_classic}
   \dot{R} &= v, \\
@@ -213,23 +218,33 @@ $R_\mathrm{st}$ swept into the shell).
 
 \subsection{Quasi-static analytic solution}
 
-Neglecting the ram-pressure term and assuming instantaneous ionization
-balance, Equation~(\ref{eq:momentum}) reduces to \citep{Spitzer1978}
+Neglecting the inertial term $M_\mathrm{sh}\dot{v}$ (quasi-static
+approximation) and assuming instantaneous ionization balance, the second
+ODE equation in (\ref{eq:ode_classic}) reduces to \citep{Spitzer1978}
 \begin{equation}
   \dot{R} \approx c_\mathrm{II}\left(\frac{R_\mathrm{st}}{R}\right)^{3/4},
 \end{equation}
 with exact solution
 \begin{equation}
   \label{eq:spitzer}
-  R(t) = R_\mathrm{st}\left[1 + \frac{7}{4}\frac{c_\mathrm{II}}{R_\mathrm{st}}\,t\right]^{4/7}.
+  R(t) = R_\mathrm{st}\left[1 + \frac{7}{4}\frac{t}{t_\mathrm{dyn}}\right]^{4/7},
 \end{equation}
+where the dynamical time is $t_\mathrm{dyn} \equiv R_\mathrm{st}/c_\mathrm{II}$.
 At late times the asymptotic power law is $R \propto t^{4/7}$.
 
 The numerical ODE integrator (\texttt{scipy.integrate.solve\_ivp}, RK45,
 $\mathrm{rtol}=10^{-10}$) reproduces the analytic result of
 Equation~(\ref{eq:spitzer}) to within $\sim7\%$ at late times; the
-residual arises because the quasi-static solution neglects the ram-pressure
-term $n m_H v^2$.
+residual arises because the quasi-static solution sets $\dot{v}=0$,
+whereas the full ODE retains the inertial term $M_\mathrm{sh}\dot{v}$.
+
+\citet{HosokawaInutsuka2006} propose the purely empirical replacement
+\begin{equation}
+  \label{eq:tdyn_HI}
+  t_\mathrm{dyn} = \frac{\sqrt{3}}{2}\frac{R_\mathrm{st}}{c_\mathrm{II}},
+\end{equation}
+which, when substituted into Equation~(\ref{eq:spitzer}), gives better
+agreement with numerical solutions (see Figure~\ref{fig:constant}).
 
 \subsection{Power-law density profiles}
 
@@ -293,9 +308,33 @@ The modified shell-mass equation is therefore
     = 4\pi R^2 n(R) m_H v - 2\pi R^2 m_H n_i(R) v
     = 2\pi R^2 m_H v\!\left[2n(R) - n_i(R)\right].
 \end{equation}
-The momentum equation (Equation~\ref{eq:momentum}) is unchanged: ionized gas
-that leaves the shell does so at the shell velocity, so the momentum-flux
-terms cancel exactly.
+The shell acceleration is unchanged from the classic form.  Applying the
+variable-mass rocket equation to the shell as an open system,
+\begin{equation}
+  \label{eq:rocket}
+  M_\mathrm{sh}\dot{v}
+    = F_\mathrm{ext}
+    + (u_\mathrm{in}-v)\,\dot{m}_\mathrm{in}
+    + (u_\mathrm{out}-v)\,\dot{m}_\mathrm{out},
+\end{equation}
+where $u_\mathrm{in}=0$ (ambient gas at rest, $\dot{m}_\mathrm{in}=4\pi
+R^2 n m_H v$) and $u_\mathrm{out}=v$ (ionized gas leaves at the shell
+velocity, $\dot{m}_\mathrm{out}=2\pi R^2 n_i m_H v$).  Because
+$u_\mathrm{out}=v$, the thrust from the ejected mass is exactly zero, and
+\begin{equation}
+  M_\mathrm{sh}\dot{v} = 4\pi R^2\!\left(P_\mathrm{in} - n(R)\,m_H\,v^2\right),
+\end{equation}
+identical to the classic expression.  Note that the total shell momentum
+\emph{does} differ from the classic case: using $\dot{M}_\mathrm{sh} =
+\dot{m}_\mathrm{in}-\dot{m}_\mathrm{out}$,
+\begin{equation}
+  \frac{d(M_\mathrm{sh}v)}{dt}
+    = M_\mathrm{sh}\dot{v} + v\dot{M}_\mathrm{sh}
+    = 4\pi R^2 P_\mathrm{in} - 2\pi R^2 n_i(R)\,m_H\,v^2,
+\end{equation}
+reflecting the momentum carried away by ionized gas transferring to the bubble
+interior.  The $\dot{v}$ equation, however, is the same as the classic ODE
+because the ejected mass exerts no force on the shell.
 
 \subsection{Modified ODE system}
 
@@ -400,8 +439,13 @@ $R\propto t^{4/7}$ slope (dotted).
   \centering
   \includegraphics[width=\linewidth]{../figures/constant_density.pdf}
   \caption{HII region expansion in a uniform medium ($n_0=100$ cm$^{-3}$).
-    Solid: classic thin-shell ODE; dashed: Spitzer (1978) analytic solution;
-    dotted: $R\propto t^{4/7}$ reference.}
+    Blue solid: classic thin-shell ODE; orange dashed: modified ODE;
+    gray dotted: Spitzer (1978) analytic solution
+    ($t_\mathrm{dyn}=R_\mathrm{st}/c_\mathrm{II}$);
+    green dotted: empirical modification of \citet{HosokawaInutsuka2006}
+    ($t_\mathrm{dyn}=\frac{\sqrt{3}}{2}R_\mathrm{st}/c_\mathrm{II}$),
+    which matches the numerical solutions more closely;
+    dash-dotted: $R\propto t^{4/7}$ reference slope.}
   \label{fig:constant}
 \end{figure}
 
@@ -451,22 +495,30 @@ density-bounded (Table~\ref{tab:cored}) and are excluded.
 \label{sec:results_comparison}
 
 Figure~\ref{fig:comparison} compares the classic and modified ODE systems
-for uniform density over $50\,T_\mathrm{dyn}$.  The top panel shows
-$R(t)$: the two solutions are nearly indistinguishable, confirming that the
-shell-mass correction has negligible effect on the radius evolution.  The
-middle panel shows $v(t)$: again nearly identical.  The bottom panel shows
-$M_\mathrm{sh}(t)$: the modified ODE gives a systematically lower shell mass at all
-times, as expected from the zero initial shell mass and the continuous
-mass transfer to the ionized interior.
+for uniform density over $50\,T_\mathrm{dyn}$, each with two initial
+conditions: the D-critical condition $v_0=c_\mathrm{II}$ and the static
+condition $v_0=0$.  The top panel shows $R(t)$: the D-critical and static
+cases converge to the same $t^{4/7}$ power law at late times, but the $v_0=0$
+shells expand more slowly at early times.  The middle panel shows $v(t)$: the
+$v_0=0$ cases accelerate from rest, reach a peak below $c_\mathrm{II}$, then
+join the decelerating power law.  The bottom panel shows
+$M_\mathrm{sh}(t)$: the classic ODE initialises with the full Stromgren
+mass regardless of $v_0$; the modified ODE starts from near-zero shell mass in
+both cases, reflecting that the Stromgren gas is already ionized.  At late
+times all four curves converge, confirming that the asymptotic evolution is
+insensitive to both the initial velocity and the shell-mass formulation.
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{../figures/classic_vs_modified.pdf}
-  \caption{Comparison of the classic (solid, blue) and modified (dashed,
-    orange) thin-shell ODE solutions for uniform density.
+  \caption{Classic (blue) and modified (orange) thin-shell ODE solutions for
+    uniform density, with D-critical initial velocity $v_0=c_\mathrm{II}$
+    (solid) and static initial velocity $v_0=0$ (dashed).
     Top to bottom: shell radius $R(t)$, shell velocity $v(t)$, shell
-    mass $M_\mathrm{sh}(t)$.  The radius and velocity agree closely;
-    the shell mass in the modified solution is lower throughout.}
+    mass $M_\mathrm{sh}(t)$.  All four solutions converge to the same
+    $t^{4/7}$ power law at late times.  The shell mass in the modified
+    ODE is lower throughout, reflecting the zero initial shell mass and
+    continuous mass transfer to the ionized interior.}
   \label{fig:comparison}
 \end{figure}
 
@@ -484,7 +536,8 @@ The key results are:
     (Equation~\ref{eq:Rst_numeric}).
   \item The classic Spitzer thin-shell ODE reproduces the $R\propto t^{4/7}$
     analytic solution (Equation~\ref{eq:spitzer}) within $\sim7\%$ at late
-    times.
+    times; the offset arises from the inertial term $M_\mathrm{sh}\dot{v}$
+    retained in the ODE but neglected in the quasi-static derivation.
   \item The modified ODE (Equations~\ref{eq:ode_mod}--\ref{eq:dMsh_mod})
     correctly initializes with zero shell mass and accounts for continuous
     mass exchange at the ionization front, yielding a lower shell mass while
