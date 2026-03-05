@@ -84,16 +84,16 @@ for col, r0 in enumerate(R0_VALUES):
             sol = hii.evolve((0.0, t_end), n_eval=600, rtol=1e-10, atol=0.0)
         except RuntimeError as exc:
             if "density-bounded" in str(exc):
-                ax_R.text(
-                    0.5, 0.5, rf"$w={w}$: density-bounded",
-                    transform=ax_R.transAxes, ha="center", va="center",
-                    fontsize=8, color=color,
-                )
                 continue
             raise
         t_Myr = sol.t / MYR
         R_pc = sol.y[0] / PC
         ax_R.loglog(t_Myr, R_pc, color=color, lw=2.0, label=lbl)
+        try:
+            sol_mod = hii.evolve_modified((0.0, t_end), n_eval=600, rtol=1e-8)
+            ax_R.loglog(sol_mod.t / MYR, sol_mod.y[0] / PC, color=color, lw=1.5, ls="--")
+        except RuntimeError:
+            pass
 
         solutions.append((t_Myr, R_pc, slope))
 
@@ -110,7 +110,12 @@ for col, r0 in enumerate(R0_VALUES):
     ax_n.set_title(rf"$r_0 = {r0_pc:.0f}$ pc")
     ax_n.set_xlabel(r"$r\;[\mathrm{pc}]$")
     ax_R.set_xlabel("Time [Myr]")
-    ax_n.legend(fontsize=8)
+    import matplotlib.lines as mlines
+    _solid = mlines.Line2D([], [], color="gray", lw=2.0, label="Classic ODE")
+    _dash  = mlines.Line2D([], [], color="gray", lw=1.5, ls="--", label="Modified ODE")
+    handles, labels = ax_n.get_legend_handles_labels()
+    ax_n.legend(handles + [_solid, _dash], labels + ["Classic ODE", "Modified ODE"],
+                fontsize=8)
 
 axes[0, 0].set_ylabel(r"$n\;[\mathrm{cm}^{-3}]$")
 axes[1, 0].set_ylabel(r"$R\;[\mathrm{pc}]$")
@@ -132,6 +137,6 @@ fig.suptitle(
 )
 fig.tight_layout()
 
-out = Path(__file__).parent / "cored_density.png"
+out = Path(__file__).parent.parent / "figures" / "cored_density.png"
 fig.savefig(out, dpi=150)
 print(f"Saved {out}")

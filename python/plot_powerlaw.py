@@ -62,6 +62,11 @@ for w, color in zip(W_VALUES, colors):
 
     hii = HIIRegion(Q=Q, n=n_profile, T=T)
     sol = hii.evolve((0.0, t_end), n_eval=600, rtol=1e-10, atol=0.0)
+    try:
+        sol_mod = hii.evolve_modified((0.0, t_end), n_eval=600, rtol=1e-8)
+        ax.loglog(sol_mod.t / MYR, sol_mod.y[0] / PC, color=color, lw=1.5, ls="--")
+    except RuntimeError:
+        pass  # modified ODE ill-conditioned for steep profiles (n_i > 2n at R_st)
 
     t_Myr = sol.t / MYR
     R_pc = sol.y[0] / PC
@@ -95,7 +100,12 @@ ax.set_title(
     rf"Power-law medium $n(r) = n_0\,(r_0/r)^w$,  "
     rf"$n_0 = {n0:.0f}\ \mathrm{{cm}}^{{-3}}$,  $r_0 = 1$ pc"
 )
-ax.legend(fontsize=9, title=rf"$Q = {Q:.0e}\ \mathrm{{s}}^{{-1}}$", title_fontsize=8)
+import matplotlib.lines as mlines
+_solid = mlines.Line2D([], [], color="gray", lw=2.0, label="Classic ODE")
+_dash  = mlines.Line2D([], [], color="gray", lw=1.5, ls="--", label="Modified ODE")
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles + [_solid, _dash], labels + ["Classic ODE", "Modified ODE"],
+          fontsize=9, title=rf"$Q = {Q:.0e}\ \mathrm{{s}}^{{-1}}$", title_fontsize=8)
 ax.text(
     0.97,
     0.03,
@@ -109,6 +119,6 @@ ax.text(
 
 fig.tight_layout()
 
-out = Path(__file__).parent / "powerlaw_density.png"
+out = Path(__file__).parent.parent / "figures" / "powerlaw_density.png"
 fig.savefig(out, dpi=150)
 print(f"Saved {out}")

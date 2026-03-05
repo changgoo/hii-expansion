@@ -33,6 +33,7 @@ T_dyn = R_st / c_II          # characteristic expansion time [s]
 
 t_end = 50.0 * T_dyn
 sol = hii.evolve((0.0, t_end), n_eval=500, rtol=1e-10, atol=0.0)
+sol_mod = hii.evolve_modified((0.0, t_end), n_eval=500, rtol=1e-10, atol=0.0)
 
 t_num = sol.t
 R_num = sol.y[0]
@@ -61,9 +62,10 @@ R_ref = R_sp_pc[i_anchor] * (t_ref / t_Myr[i_anchor]) ** (4.0 / 7.0)
 # ---------------------------------------------------------------------------
 fig, ax = plt.subplots(figsize=(6, 4.5))
 
-ax.loglog(t_Myr, R_num_pc, color="C0", lw=2.0, label="Thin-shell ODE (numerical)")
-ax.loglog(t_Myr, R_sp_pc, color="C1", lw=2.0, ls="--", label="Spitzer (1978) analytic")
-ax.loglog(t_ref, R_ref, color="k", lw=1.2, ls=":", label=r"$\propto t^{4/7}$")
+ax.loglog(t_Myr, R_num_pc, color="C0", lw=2.0, label="Classic ODE")
+ax.loglog(sol_mod.t / MYR, sol_mod.y[0] / PC, color="C1", lw=2.0, ls="--", label="Modified ODE")
+ax.loglog(t_Myr, R_sp_pc, color="gray", lw=1.5, ls=":", label="Spitzer (1978) analytic")
+ax.loglog(t_ref, R_ref, color="k", lw=1.2, ls="-.", label=r"$\propto t^{4/7}$")
 
 # Mark the initial Stromgren radius
 ax.axhline(R_st_pc, color="gray", lw=0.8, ls="--")
@@ -85,6 +87,6 @@ ax.set_title(
 ax.legend(fontsize=9)
 fig.tight_layout()
 
-out = Path(__file__).parent / "constant_density.png"
+out = Path(__file__).parent.parent / "figures" / "constant_density.png"
 fig.savefig(out, dpi=150)
 print(f"Saved {out}")

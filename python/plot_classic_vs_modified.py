@@ -97,6 +97,9 @@ ax.loglog(t_m, sol_modified.y[2] / M_SUN, color="C1", lw=2.0, ls="--", label="Mo
 ax.set_ylabel(r"$M_{\rm sh}\;[M_\odot]$")
 ax.set_xlabel("Time [Myr]")
 ax.legend(fontsize=8, loc="upper left")
+# tighten y-limits to the data range (skip seed-mass transient at t=0)
+_all_msh = np.concatenate([sol_classic.y[2], sol_modified.y[2]]) / M_SUN
+ax.set_ylim(_all_msh[_all_msh > 0].min() * 0.5, _all_msh.max() * 2.0)
 
 for ax in axes:
     ax.grid(True, which="both", alpha=0.3, lw=0.5)
