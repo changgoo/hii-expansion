@@ -310,18 +310,71 @@ The modified ODE state vector $[R, v, M_\mathrm{sh}]$ satisfies
 Initial conditions: $R(0)=R_\mathrm{st}$, $v(0)=c_\mathrm{II}$,
 $M_\mathrm{sh}(0)\approx 0$.
 
-At $t=0$ the interior pressure satisfies $P_\mathrm{in} = n_0 m_H c_\mathrm{II}^2$,
-so the net force on the shell (Equation~\ref{eq:momentum}) is exactly zero and
-$\dot{v}=0$.  The numerical integrator uses a seed mass
+At $t=0$ the net driving force is
+\begin{equation}
+  F_0 = 4\pi R_\mathrm{st}^2\!\left(P_\mathrm{in}(R_\mathrm{st})
+        - n(R_\mathrm{st})\,m_H\,c_\mathrm{II}^2\right)
+      = 4\pi R_\mathrm{st}^2\,m_H\,c_\mathrm{II}^2\,
+        \bigl[n_i(R_\mathrm{st}) - n(R_\mathrm{st})\bigr].
+\end{equation}
+For a uniform medium $n_i(R_\mathrm{st})=n_0$ exactly, so $F_0=0$ and
+neither shell accelerates initially.
+For a declining profile ($w>0$) we showed in
+Section~\ref{sec:ionization} that
+$n_i(R_\mathrm{st}) = n(R_\mathrm{st})\sqrt{3/(3-2w)} > n(R_\mathrm{st})$,
+giving $F_0 > 0$.  The numerical integrator uses a seed mass
 $\sim 10^{-10}$ times a characteristic swept mass to avoid a literal
 divide-by-zero without affecting the dynamics.
 
-\subsection{Late-time behavior}
+\subsection{Early-time overshoot and late-time crossover for declining profiles}
+\label{sec:crossover}
+
+For a declining density profile ($w>0$) the modified and classic solutions
+exhibit a characteristic \emph{crossover}: the modified solution expands
+faster than the classic at early times but slower at late times.
+The mechanism has two parts.
+
+\paragraph{Early-time advantage.}
+At $t=0$ both shells start at $R_\mathrm{st}$ with $v_0=c_\mathrm{II}$, but
+their inertias differ enormously: $M_\mathrm{sh}^\mathrm{mod}\approx 0$
+versus $M_\mathrm{sh}^\mathrm{class} = 4\pi m_H\!\int_0^{R_\mathrm{st}}
+n(r)r^2\,dr \gg 0$.  The positive overpressure force $F_0 > 0$ therefore
+accelerates the modified shell to $v \gg c_\mathrm{II}$ almost
+instantaneously, while the classic shell, burdened by its large initial mass,
+barely accelerates.  The modified shell thus overshoots the quasi-static
+Spitzer trajectory $R_\mathrm{qs}(t) \propto t^{4/(7-2w)}$ at early times.
+
+\paragraph{Late-time momentum deficit.}
+Taking the time derivative of $M_\mathrm{sh}\,v$ using each ODE system:
+\begin{align}
+  \frac{d(M_\mathrm{sh}v)}{dt}\bigg|_\mathrm{class}
+    &= 4\pi R^2 P_\mathrm{in}, \\
+  \frac{d(M_\mathrm{sh}v)}{dt}\bigg|_\mathrm{mod}
+    &= 4\pi R^2 P_\mathrm{in} - 2\pi R^2 n_i m_H v^2.
+\end{align}
+The extra term $-2\pi R^2 n_i m_H v^2$ represents momentum carried away from
+the shell by ionized gas that is continuously transferred to the bubble
+interior at velocity $v$.  This momentum sink accumulates over time,
+leaving the modified shell with less total momentum than the classic shell.
+Once the driving pressure $P_\mathrm{in}\propto R^{-3/2}$ weakens at large
+$R$, the modified shell's reduced momentum causes it to decelerate faster and
+fall behind the classic trajectory.
+
+For $w=1.0$ specifically, the ratio
+$n_i(R_\mathrm{st})/n(R_\mathrm{st}) = \sqrt{3} \approx 1.73$ gives a
+significant initial overpressure, making the crossover clearly visible
+(Figure~\ref{fig:powerlaw}).  For $w=0$ (uniform) the ratio equals unity,
+$F_0=0$, and no crossover occurs.
+
+\subsection{Late-time asymptotic behavior}
 
 At late times $R \gg R_\mathrm{st}$ both $n_i \ll n$ and
 $M_\mathrm{sh}^\mathrm{mod} < M_\mathrm{sh}^\mathrm{classic}$, but both
-systems converge to the same asymptotic scaling $R\propto t^{4/7}$ because the
-velocity field is dominated by the interior pressure rather than the shell mass.
+systems converge to the same asymptotic power-law slope
+$R\propto t^{4/(7-2w)}$ because in this limit $n_i \to 0$ and the modified
+mass equation approaches the classic one, $\dot{M}_\mathrm{sh} \to 4\pi R^2
+n m_H v$.  The two solutions differ only in the pre-factor set during the
+transient phase.
 
 %-----------------------------------------------------------------------
 \section{Example Results}
@@ -359,6 +412,15 @@ Figure~\ref{fig:powerlaw} shows the expansion for
 $n(r)=n_0(r_0/r)^w$ with $w\in\{0, 0.5, 1.0, 1.4\}$.  Steeper profiles
 lead to faster late-time expansion, consistent with the
 $R\propto t^{4/(7-2w)}$ scaling of \citet{FrancoEtal1990}.
+For $w=1.0$ the modified solution (dashed) lies \emph{above} the classic
+solution at early times but \emph{below} it at late times.  This crossover
+is a direct consequence of the initial zero-mass overshoot and late-time
+momentum deficit described in Section~\ref{sec:crossover}.
+For $w\le0.5$ the initial overpressure ($n_i/n = \sqrt{3/(3-2w)}$) is small
+enough that the crossover, if present, is not visible on these axes.  For
+$w=1.4$ the modified ODE is ill-conditioned at $R_\mathrm{st}$ because
+$n_i \approx 3.87\,n > 2n$, so $\dot{M}_\mathrm{sh}(0) < 0$; no stable
+shell forms initially and the modified solution is not shown.
 
 \begin{figure}[ht]
   \centering
