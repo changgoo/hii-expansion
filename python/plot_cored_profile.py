@@ -132,6 +132,8 @@ fig.suptitle(
 )
 fig.tight_layout()
 
-out = Path(__file__).parent.parent / "figures" / "cored_density.png"
-fig.savefig(out, dpi=150)
-print(f"Saved {out}")
+fig_dir = Path(__file__).parent.parent / "figures"
+for ext in ("pdf", "png"):
+    out = fig_dir / f"cored_density.{ext}"
+    fig.savefig(out, dpi=150 if ext == "png" else None)
+    print(f"Saved {out}")

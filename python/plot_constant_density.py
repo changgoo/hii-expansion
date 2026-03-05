@@ -87,6 +87,8 @@ ax.set_title(
 ax.legend(fontsize=9)
 fig.tight_layout()
 
-out = Path(__file__).parent.parent / "figures" / "constant_density.pdf"
-fig.savefig(out)
-print(f"Saved {out}")
+fig_dir = Path(__file__).parent.parent / "figures"
+for ext in ("pdf", "png"):
+    out = fig_dir / f"constant_density.{ext}"
+    fig.savefig(out, dpi=150 if ext == "png" else None)
+    print(f"Saved {out}")

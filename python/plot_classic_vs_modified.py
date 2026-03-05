@@ -106,6 +106,8 @@ for ax in axes:
 
 fig.tight_layout()
 
-out = Path(__file__).parent.parent / "figures" / "classic_vs_modified.pdf"
-fig.savefig(out)
-print(f"Saved {out}")
+fig_dir = Path(__file__).parent.parent / "figures"
+for ext in ("pdf", "png"):
+    out = fig_dir / f"classic_vs_modified.{ext}"
+    fig.savefig(out, dpi=150 if ext == "png" else None)
+    print(f"Saved {out}")

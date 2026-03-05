@@ -119,6 +119,8 @@ ax.text(
 
 fig.tight_layout()
 
-out = Path(__file__).parent.parent / "figures" / "powerlaw_density.pdf"
-fig.savefig(out)
-print(f"Saved {out}")
+fig_dir = Path(__file__).parent.parent / "figures"
+for ext in ("pdf", "png"):
+    out = fig_dir / f"powerlaw_density.{ext}"
+    fig.savefig(out, dpi=150 if ext == "png" else None)
+    print(f"Saved {out}")
