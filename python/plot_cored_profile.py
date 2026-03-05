@@ -25,7 +25,7 @@ n0 = 100.0        # central density [cm⁻³]
 T = 1.0e4         # temperature [K]
 alpha_B = alpha_B_case_B(T)
 
-R0_VALUES = [1.0 * PC, 5.0 * PC, 10.0 * PC]   # core radii [cm]
+R0_VALUES = [1.0 * PC, 5.0 * PC]   # core radii [cm]
 W_VALUES = [1.0, 1.5, 2.0]
 
 MYR = 1.0e6 * YR
@@ -47,7 +47,7 @@ colors = plt.cm.plasma(np.linspace(0.1, 0.75, len(W_VALUES)))
 # ---------------------------------------------------------------------------
 # Layout: 3 rows × 1 column
 # ---------------------------------------------------------------------------
-fig, axes = plt.subplots(3, 1, figsize=(8, 11), sharex=True)
+fig, axes = plt.subplots(2, 1, figsize=(8, 8), sharex=True)
 
 for row, r0 in enumerate(R0_VALUES):
     ax_R = axes[row]
@@ -56,7 +56,7 @@ for row, r0 in enumerate(R0_VALUES):
     solutions: list[tuple[np.ndarray, np.ndarray, float]] = []
 
     # ---- inset for density profile ----
-    ax_in = ax_R.inset_axes([0.55, 0.05, 0.42, 0.42])
+    ax_in = ax_R.inset_axes([0.05, 0.55, 0.42, 0.42])
     ax_in.axvline(r0_pc, color="gray", lw=0.8, ls="--")
     ax_in.text(r0_pc * 1.12, n0 * 0.35, rf"$r_0={r0_pc:.0f}$ pc",
                color="gray", fontsize=7)
