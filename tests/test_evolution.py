@@ -233,3 +233,43 @@ class TestModifiedSpitzer:
         with patch("hii_expansion.hii_region.integrate.solve_ivp", return_value=failed):
             with pytest.raises(RuntimeError, match="ODE integration failed"):
                 hii.evolve_modified((0.0, T_DYN))
+
+
+class TestRamPressure:
+    """Tests for evolve(ram_pressure=False)."""
+
+    def _run(self, ram_pressure: bool) -> object:
+        hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
+        t_end = 50.0 * T_DYN
+        sol = hii.evolve((0.0, t_end), n_eval=500, rtol=1e-10, atol=0.0,
+                         ram_pressure=ram_pressure)
+        return hii, sol
+
+    def test_no_ram_starts_at_rst(self) -> None:
+        """R(t=0) = R_st with ram_pressure=False."""
+        hii, sol = self._run(ram_pressure=False)
+        assert sol.y[0, 0] == pytest.approx(hii.stromgren_radius(), rel=1e-10)
+
+    def test_no_ram_coasts_at_late_times(self) -> None:
+        """Without ram pressure, the shell eventually coasts at constant velocity.
+
+        P_in ∝ R^{-3/2} delivers a finite total impulse, so the shell coasts
+        at constant velocity: R ∝ t (log-log slope → 1) at late times.
+        With ram pressure the ongoing deceleration gives R ∝ t^(4/7) instead.
+        """
+        hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
+        t_end = 100.0 * T_DYN
+        sol = hii.evolve((0.0, t_end), n_eval=1000, rtol=1e-10, atol=0.0,
+                         ram_pressure=False)
+        mask = sol.t > 0.5 * t_end
+        log_t = np.log(sol.t[mask])
+        log_R = np.log(sol.y[0, mask])
+        slope = np.polyfit(log_t, log_R, 1)[0]
+        assert slope == pytest.approx(1.0, rel=0.05)
+
+    def test_no_ram_faster_than_with_ram(self) -> None:
+        """Without ram deceleration, the shell expands faster at late times."""
+        _, sol_no_ram   = self._run(ram_pressure=False)
+        _, sol_with_ram = self._run(ram_pressure=True)
+        # At the final time, R(no_ram) > R(with_ram)
+        assert sol_no_ram.y[0, -1] > sol_with_ram.y[0, -1]

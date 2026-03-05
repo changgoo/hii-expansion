@@ -231,6 +231,77 @@ Equation~(\ref{eq:spitzer}) to within $\sim7\%$ at late times; the
 residual arises because the quasi-static solution neglects the ram-pressure
 term $n m_H v^2$.
 
+\subsection{Physical Origin and Magnitude of the Ram Pressure Term}
+\label{sec:ram_pressure}
+
+\paragraph{Origin.}
+As the shell sweeps outward at velocity $v$, it engulfs a column of ambient
+gas of surface density $n(R)\,m_H\,v\,dt$ per unit area in time $dt$.
+Bringing this mass from rest to the shell velocity $v$ requires momentum
+$n(R)\,m_H\,v^2\,dt$ per unit area, which must be supplied by the net
+pressure force.  Integrated over the shell surface $4\pi R^2$, the ram
+pressure force opposing the shell motion is
+\begin{equation}
+  \label{eq:Fram}
+  F_\mathrm{ram} = 4\pi R^2\,n(R)\,m_H\,v^2.
+\end{equation}
+This term appears explicitly in Equation~(\ref{eq:momentum}) and in the
+ODE system (\ref{eq:ode_classic}).
+
+\paragraph{Magnitude relative to thermal driving.}
+The ratio of the ram pressure force to the thermal driving force
+$F_\mathrm{th} = 4\pi R^2 P_\mathrm{in}$ is
+\begin{equation}
+  \label{eq:ram_ratio}
+  \frac{F_\mathrm{ram}}{F_\mathrm{th}}
+    = \frac{n(R)\,m_H\,v^2}{P_\mathrm{in}(R)}
+    = \frac{n(R)\,m_H\,v^2}{2\,n_i(R)\,k_B T}.
+\end{equation}
+At $t=0$, the initial conditions are $R=R_\mathrm{st}$, $v=c_\mathrm{II}$,
+and $n_i(R_\mathrm{st})=n(R_\mathrm{st})=n_0$, giving
+\begin{equation}
+  \left.\frac{F_\mathrm{ram}}{F_\mathrm{th}}\right|_{t=0}
+    = \frac{n_0\,m_H\,c_\mathrm{II}^2}{2\,n_0\,k_B T}
+    = \frac{m_H c_\mathrm{II}^2}{2\,k_B T} = 1,
+\end{equation}
+exactly unity by the definition $c_\mathrm{II}^2 = 2k_BT/m_H$.  Thus at
+early times ram pressure and thermal pressure are comparable, and the
+quasi-static approximation is poor.  As the shell decelerates,
+$v < c_\mathrm{II}$, while $n_i \propto R^{-3/2}$ decreases more slowly than
+$n(R)$ in a uniform medium.  The ratio therefore decreases as
+$\sim (v/c_\mathrm{II})^2$ and the quasi-static approximation progressively
+improves.
+
+\paragraph{Late-time behavior without ram pressure.}
+Because the ratio does not vanish, a $\sim7\%$ offset persists between the
+full ODE and the Spitzer analytic formula at late times (see
+Section~\ref{sec:results_uniform}).  Interestingly, disabling the ram
+pressure term in the ODE does \emph{not} recover the Spitzer quasi-static
+solution; it produces a \emph{faster} expansion (Figure~\ref{fig:ram_pressure}).
+This is because the Spitzer quasi-static derivation implicitly relies on the
+ram pressure: the quasi-static condition $v\,\dot{M}_\mathrm{sh} =
+4\pi R^2 P_\mathrm{in}$ yields $n m_H v^2 = P_\mathrm{in}$, i.e.\ ram
+pressure balances the thermal drive.  Without this balance term, the net
+force $4\pi R^2 P_\mathrm{in}$ delivers a finite total impulse
+$\Delta v = \int (4\pi R^2 P_\mathrm{in}/M_\mathrm{sh})\,dt < \infty$
+(since $P_\mathrm{in} \propto R^{-3/2}$), and the shell asymptotically
+coasts at constant velocity so that $R \propto t$ rather than
+$R \propto t^{4/7}$.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[width=\linewidth]{../figures/ram_pressure.pdf}
+  \caption{Effect of the ram pressure term for uniform density
+    ($n_0=100$ cm$^{-3}$).  \emph{Solid blue}: classic ODE with ram pressure
+    (reference); \emph{dashed orange}: classic ODE without ram pressure;
+    \emph{dotted gray}: Spitzer quasi-static analytic solution.
+    Top: $R(t)$; middle: $v(t)$; bottom: ratio of each solution to the
+    full ODE.  Without ram pressure the ODE matches the Spitzer analytic
+    formula to $\lesssim1\%$, confirming that the $\sim7\%$ late-time offset
+    in the full ODE arises entirely from ram pressure deceleration.}
+  \label{fig:ram_pressure}
+\end{figure}
+
 \subsection{Power-law density profiles}
 
 For $n(r) = n_0 (r_0/r)^w$ the asymptotic expansion law is
