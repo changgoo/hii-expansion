@@ -169,3 +169,67 @@ class TestHIIRegionEvolve:
         with patch("hii_expansion.hii_region.integrate.solve_ivp", return_value=failed):
             with pytest.raises(RuntimeError, match="ODE integration failed"):
                 hii.evolve((0.0, T_DYN))
+
+
+class TestModifiedSpitzer:
+    """Tests for HIIRegion.evolve_modified (corrected thin-shell ODE)."""
+
+    def _sol(self) -> object:
+        hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
+        return hii, hii.evolve_modified(
+            (0.0, 50.0 * T_DYN), n_eval=300, rtol=1e-10, atol=0.0
+        )
+
+    def test_modified_starts_at_rst(self) -> None:
+        """R at t=0 equals the Stromgren radius."""
+        hii, sol = self._sol()
+        assert sol.y[0, 0] == pytest.approx(hii.stromgren_radius(), rel=1e-8)
+
+    def test_modified_initial_velocity_c_II(self) -> None:
+        """v at t=0 equals c_II."""
+        hii, sol = self._sol()
+        assert sol.y[1, 0] == pytest.approx(hii.c_II, rel=1e-8)
+
+    def test_modified_initial_mass_negligible(self) -> None:
+        """Initial shell mass seed is negligibly small (< 1e-6 of classic value)."""
+        hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
+        sol_c = hii.evolve((0.0, T_DYN), n_eval=10, rtol=1e-6, atol=0.0)
+        sol_m = hii.evolve_modified((0.0, T_DYN), n_eval=10, rtol=1e-6, atol=0.0)
+        assert sol_m.y[2, 0] / sol_c.y[2, 0] < 1e-5
+
+    def test_modified_R_monotone(self) -> None:
+        """Shell radius increases monotonically."""
+        _, sol = self._sol()
+        assert np.all(np.diff(sol.y[0]) > 0)
+
+    def test_modified_M_sh_positive(self) -> None:
+        """Shell mass is non-negative throughout."""
+        _, sol = self._sol()
+        assert np.all(sol.y[2] >= 0)
+
+    def test_modified_mass_less_than_classic(self) -> None:
+        """Modified shell mass is always <= classic (initial Stromgren mass excluded)."""
+        hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
+        sol_c = hii.evolve((0.0, 50.0 * T_DYN), n_eval=300, rtol=1e-10, atol=0.0)
+        sol_m = hii.evolve_modified(
+            (0.0, 50.0 * T_DYN), n_eval=300, rtol=1e-10, atol=0.0
+        )
+        assert np.all(sol_m.y[2] <= sol_c.y[2] + 1e-30)
+
+    def test_modified_asymptotic_slope(self) -> None:
+        """Late-time R ∝ t^(4/7) for uniform density."""
+        _, sol = self._sol()
+        t, R = sol.t, sol.y[0]
+        i1, i2 = len(t) // 2, -1
+        slope = np.log(R[i2] / R[i1]) / np.log(t[i2] / t[i1])
+        assert slope == pytest.approx(4.0 / 7.0, rel=1e-2)
+
+    def test_modified_failed_integration_raises(self) -> None:
+        """If solve_ivp reports failure, evolve_modified() raises RuntimeError."""
+        hii = HIIRegion(Q=Q_0, n=N_0, alpha_B=A_B)
+        failed = MagicMock()
+        failed.success = False
+        failed.message = "mock failure"
+        with patch("hii_expansion.hii_region.integrate.solve_ivp", return_value=failed):
+            with pytest.raises(RuntimeError, match="ODE integration failed"):
+                hii.evolve_modified((0.0, T_DYN))

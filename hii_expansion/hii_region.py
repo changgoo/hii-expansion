@@ -210,6 +210,51 @@ class HIIRegion:
 
         return sol
 
+    def evolve_modified(
+        self,
+        t_span: tuple[float, float],
+        n_eval: int = 500,
+        v0: float | None = None,
+        **ivp_kwargs: object,
+    ) -> OdeResult:
+        """Evolve the HII region using the modified thin-shell ODE.
+
+        Applies two corrections over :meth:`evolve` (classic Spitzer):
+
+        1. **Initial shell mass = 0**: the gas already ionized within R_st
+           does not contribute to the shell momentum.
+        2. **Ionization mass exchange**: as the ionization front advances,
+           gas transfers continuously from the shell into the bubble interior::
+
+               dM_sh/dt = 2π R² m_H v [2 n(R) − n_i(R)]
+
+           instead of ``4π R² n(R) m_H v``.  The momentum equation is
+           unchanged.
+
+        Parameters and return value are identical to :meth:`evolve`.
+        """
+        R0 = self.stromgren_radius()
+        v_init = self.c_II if v0 is None else v0
+        # Shell starts physically empty; a tiny nonzero seed avoids division
+        # by zero in scipy's initial step-size estimator when atol=0.
+        M_sh_0 = 4.0 * np.pi * M_H * self._n_func(R0) * R0**2 * R0 * 1e-10
+
+        t_eval = np.linspace(t_span[0], t_span[1], n_eval)
+
+        sol = integrate.solve_ivp(
+            self._ode_rhs_modified,
+            t_span,
+            [R0, v_init, M_sh_0],
+            t_eval=t_eval,
+            **ivp_kwargs,
+        )
+
+        if not sol.success:
+            msg = f"ODE integration failed: {sol.message}"
+            raise RuntimeError(msg)
+
+        return sol
+
     # ------------------------------------------------------------------
     # Internal helpers — Stromgren radius
     # ------------------------------------------------------------------
@@ -294,7 +339,7 @@ class HIIRegion:
         return 4.0 * np.pi * M_H * result
 
     def _ode_rhs(self, _t: float, y: np.ndarray) -> np.ndarray:
-        """RHS of the thin-shell ODE: state = [R, v, M_sh]."""
+        """RHS of the classic thin-shell ODE: state = [R, v, M_sh]."""
         R, v, M_sh = y
         n_R = self._n_func(R)
         P_in = self._interior_pressure(R)
@@ -303,5 +348,41 @@ class HIIRegion:
         dR_dt = v
         dv_dt = area * (P_in - n_R * M_H * v**2) / M_sh
         dM_sh_dt = area * n_R * M_H * v
+
+        return np.array([dR_dt, dv_dt, dM_sh_dt])
+
+    def _ode_rhs_modified(self, _t: float, y: np.ndarray) -> np.ndarray:
+        """RHS of the modified thin-shell ODE: state = [R, v, M_sh].
+
+        Two corrections over the classic ODE:
+
+        1. The initial shell mass is zero (gas within R_st is already ionized).
+        2. The mass equation accounts for gas continuously transferred from the
+           shell into the ionized bubble interior as the ionization front
+           advances::
+
+               dM_sh/dt = 2π R² m_H v [2 n(R) − n_i(R)]
+
+           Derivation: shell mass = swept mass from R_st − ΔM_ionized, where
+           ΔM_ionized = (4π/3) m_H [R³ n_i(R) − R_st³ n_i(R_st)].
+           Differentiating gives d(ΔM_ion)/dt = 2π R² m_H n_i v, so
+           dM_sh/dt = 4π R² n m_H v − 2π R² m_H n_i v.
+
+           The momentum equation is *unchanged*: ionized gas leaves the shell
+           at the shell velocity, so the momentum-flux terms cancel.
+
+        At t = 0, M_sh = 0 and the pressure force is also exactly zero
+        (v₀ = c_II ⟹ P_in = n m_H c_II²), so dv/dt = 0/0 → 0.  A small
+        guard on M_sh prevents a literal divide-by-zero.
+        """
+        R, v, M_sh = y
+        n_R = self._n_func(R)
+        n_i = self._n_ionized(R)
+        P_in = self._interior_pressure(R)
+
+        dR_dt = v
+        M_sh_safe = max(M_sh, 1e-100)  # force is 0 at t=0, so dv/dt → 0
+        dv_dt = 4.0 * np.pi * R**2 * (P_in - n_R * M_H * v**2) / M_sh_safe
+        dM_sh_dt = 2.0 * np.pi * R**2 * M_H * v * (2.0 * n_R - n_i)
 
         return np.array([dR_dt, dv_dt, dM_sh_dt])
