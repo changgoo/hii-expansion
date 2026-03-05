@@ -299,9 +299,33 @@ The modified shell-mass equation is therefore
     = 4\pi R^2 n(R) m_H v - 2\pi R^2 m_H n_i(R) v
     = 2\pi R^2 m_H v\!\left[2n(R) - n_i(R)\right].
 \end{equation}
-The momentum equation (Equation~\ref{eq:momentum}) is unchanged: ionized gas
-that leaves the shell does so at the shell velocity, so the momentum-flux
-terms cancel exactly.
+The shell acceleration is unchanged from the classic form.  Applying the
+variable-mass rocket equation to the shell as an open system,
+\begin{equation}
+  \label{eq:rocket}
+  M_\mathrm{sh}\dot{v}
+    = F_\mathrm{ext}
+    + (u_\mathrm{in}-v)\,\dot{m}_\mathrm{in}
+    + (u_\mathrm{out}-v)\,\dot{m}_\mathrm{out},
+\end{equation}
+where $u_\mathrm{in}=0$ (ambient gas at rest, $\dot{m}_\mathrm{in}=4\pi
+R^2 n m_H v$) and $u_\mathrm{out}=v$ (ionized gas leaves at the shell
+velocity, $\dot{m}_\mathrm{out}=2\pi R^2 n_i m_H v$).  Because
+$u_\mathrm{out}=v$, the thrust from the ejected mass is exactly zero, and
+\begin{equation}
+  M_\mathrm{sh}\dot{v} = 4\pi R^2\!\left(P_\mathrm{in} - n(R)\,m_H\,v^2\right),
+\end{equation}
+identical to the classic expression.  Note that the total shell momentum
+\emph{does} differ from the classic case: using $\dot{M}_\mathrm{sh} =
+\dot{m}_\mathrm{in}-\dot{m}_\mathrm{out}$,
+\begin{equation}
+  \frac{d(M_\mathrm{sh}v)}{dt}
+    = M_\mathrm{sh}\dot{v} + v\dot{M}_\mathrm{sh}
+    = 4\pi R^2 P_\mathrm{in} - 2\pi R^2 n_i(R)\,m_H\,v^2,
+\end{equation}
+reflecting the momentum carried away by ionized gas transferring to the bubble
+interior.  The $\dot{v}$ equation, however, is the same as the classic ODE
+because the ejected mass exerts no force on the shell.
 
 \subsection{Modified ODE system}
 
