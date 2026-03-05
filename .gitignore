@@ -29,3 +29,15 @@ htmlcov/
 
 # Generated figures (kept in figures/ for README; exclude local script output)
 python/*.png
+
+# LaTeX build artifacts
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.pdf
+paper/*.toc
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
