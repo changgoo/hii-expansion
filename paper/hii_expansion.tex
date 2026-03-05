@@ -192,13 +192,18 @@ Equation~(\ref{eq:Pin}) by construction.
 The momentum of the thin shell satisfies
 \begin{equation}
   \label{eq:momentum}
-  \frac{d(M_\mathrm{sh}\dot{R})}{dt}
-    = 4\pi R^2\!\left(P_\mathrm{in} - n(R)\,m_H\,\dot{R}^2\right),
+  \frac{d(M_\mathrm{sh}\dot{R})}{dt} = 4\pi R^2\,P_\mathrm{in},
 \end{equation}
-where the second term on the right is the ram-pressure deceleration from
-sweeping up ambient gas.  Expanding the left-hand side and using the mass
-equation $\dot{M}_\mathrm{sh} = 4\pi R^2 n(R) m_H v$ (with $v\equiv\dot R$)
-yields the classic ODE system:
+where the only force is the thermal pressure drive from the ionized
+interior.  Expanding the left-hand side and using the mass equation
+$\dot{M}_\mathrm{sh} = 4\pi R^2 n(R) m_H v$ (with $v\equiv\dot{R}$) gives
+\begin{equation}
+  M_\mathrm{sh}\dot{v} = 4\pi R^2\!\left(P_\mathrm{in} - n(R)\,m_H\,v^2\right),
+\end{equation}
+where the $n(R)\,m_H\,v^2$ term arises kinematically: gas at rest is
+accelerated to the shell velocity, which decelerates the shell.  This term
+is conventionally called the \emph{ram pressure} term.  Written as an ODE
+system the classic equations are:
 \begin{align}
   \label{eq:ode_classic}
   \dot{R} &= v, \\
@@ -213,8 +218,9 @@ $R_\mathrm{st}$ swept into the shell).
 
 \subsection{Quasi-static analytic solution}
 
-Neglecting the ram-pressure term and assuming instantaneous ionization
-balance, Equation~(\ref{eq:momentum}) reduces to \citep{Spitzer1978}
+Neglecting the inertial term $M_\mathrm{sh}\dot{v}$ (quasi-static
+approximation) and assuming instantaneous ionization balance, the second
+ODE equation in (\ref{eq:ode_classic}) reduces to \citep{Spitzer1978}
 \begin{equation}
   \dot{R} \approx c_\mathrm{II}\left(\frac{R_\mathrm{st}}{R}\right)^{3/4},
 \end{equation}
@@ -228,95 +234,72 @@ At late times the asymptotic power law is $R \propto t^{4/7}$.
 The numerical ODE integrator (\texttt{scipy.integrate.solve\_ivp}, RK45,
 $\mathrm{rtol}=10^{-10}$) reproduces the analytic result of
 Equation~(\ref{eq:spitzer}) to within $\sim7\%$ at late times; the
-residual arises because the quasi-static solution neglects the ram-pressure
-term $n m_H v^2$.
+residual arises because the quasi-static solution sets $\dot{v}=0$,
+whereas the full ODE retains the inertial term $M_\mathrm{sh}\dot{v}$.
 
-\subsection{Physical Origin and Magnitude of the Ram Pressure Term}
+\subsection{The Ram Pressure Term: Kinematic Origin and Role in the Quasi-static Solution}
 \label{sec:ram_pressure}
 
-\paragraph{Origin.}
-As the shell sweeps outward at velocity $v$, it engulfs a column of ambient
-gas of surface density $n(R)\,m_H\,v\,dt$ per unit area in time $dt$.
-Bringing this mass from rest to the shell velocity $v$ requires momentum
-$n(R)\,m_H\,v^2\,dt$ per unit area, which must be supplied by the net
-pressure force.  Integrated over the shell surface $4\pi R^2$, the ram
-pressure force opposing the shell motion is
+\paragraph{Kinematic origin.}
+The $n(R)\,m_H\,v^2$ term in the $\dot{v}$ equation is not an independent
+external force; it arises from expanding the LHS of
+Equation~(\ref{eq:momentum}).  The shell sweeps up ambient gas at rest,
+bringing it to velocity $v$; this costs momentum $v\,\dot{M}_\mathrm{sh}
+= 4\pi R^2 n\,m_H\,v^2$, which must be supplied by the pressure force and
+hence decelerates the shell.  The term is conventionally called ``ram
+pressure'' and satisfies
 \begin{equation}
   \label{eq:Fram}
-  F_\mathrm{ram} = 4\pi R^2\,n(R)\,m_H\,v^2.
+  F_\mathrm{ram} \equiv 4\pi R^2\,n(R)\,m_H\,v^2
+    = v\,\dot{M}_\mathrm{sh}.
 \end{equation}
-This term appears explicitly in Equation~(\ref{eq:momentum}) and in the
-ODE system (\ref{eq:ode_classic}).
 
-\paragraph{Ram pressure is never negligible: the quasi-static identity.}
-The ratio of the ram pressure force to the thermal driving force
-$F_\mathrm{th} = 4\pi R^2 P_\mathrm{in}$ is
+\paragraph{The quasi-static balance.}
+The quasi-static approximation sets $\dot{v}=0$ in the $\dot{v}$ equation,
+giving
 \begin{equation}
-  \label{eq:ram_ratio}
-  \frac{F_\mathrm{ram}}{F_\mathrm{th}}
-    = \frac{n(R)\,m_H\,v^2}{2\,n_i(R)\,k_B T}.
+  \label{eq:qs_balance}
+  P_\mathrm{in}(R) = n(R)\,m_H\,v^2
+  \quad\Longrightarrow\quad
+  v = c_\mathrm{II}\!\left(\frac{R_\mathrm{st}}{R}\right)^{3/4},
 \end{equation}
-Along the Spitzer quasi-static trajectory
-$v = c_\mathrm{II}(R_\mathrm{st}/R)^{3/4}$,
-with $n_i \propto R^{-3/2}$ for uniform density, both numerator and
-denominator scale identically as $R^{-3/2}$, giving
-\begin{equation}
-  \label{eq:ram_ratio_qstatic}
-  \left.\frac{F_\mathrm{ram}}{F_\mathrm{th}}\right|_\mathrm{Spitzer}
-    = \frac{n_0\,m_H\,c_\mathrm{II}^2}{2\,n_0\,k_B T}
-    = \frac{m_H c_\mathrm{II}^2}{2\,k_B T} = 1
-    \quad \text{(at all times)}.
-\end{equation}
-This result is not a coincidence: the quasi-static approximation is
-precisely the condition $P_\mathrm{in} = n\,m_H\,v^2$ (zero net force,
-$\dot{v}=0$), which is identical to $F_\mathrm{ram}/F_\mathrm{th}=1$.
-\emph{Ram pressure is therefore never negligible; it is always exactly equal
-to the thermal driving force along the Spitzer trajectory.}
+which is exactly the Spitzer quasi-static velocity.  The ram pressure term
+is therefore \emph{essential} to the quasi-static solution; it is the
+balance that determines the expansion velocity.  Numerically, $F_\mathrm{ram}
+= P_\mathrm{in}$ (ratio $= 1$) everywhere along the Spitzer trajectory,
+confirming that it can never be neglected.
 
-\paragraph{Why the no-ram ODE diverges from Spitzer.}
-Disabling the ram pressure term in the ODE does \emph{not} recover the
-Spitzer quasi-static solution (Figure~\ref{fig:ram_pressure}).  In fact,
-the no-ram ODE diverges from Spitzer regardless of the initial velocity
-$v_0$:
-\begin{itemize}
-  \item \textbf{D-critical initial condition} ($v_0 = c_\mathrm{II}$):
-    the full ODE has zero net force at $t=0$ (quasi-static balance), but
-    the no-ram ODE sees an immediate unbalanced force $4\pi R_\mathrm{st}^2
-    P_\mathrm{in}(R_\mathrm{st})$, which inflates the trajectory permanently.
-  \item \textbf{Static initial condition} ($v_0 = 0$): the force at
-    $t=0$ is identical (since $F_\mathrm{ram}=0$ when $v=0$), and the
-    initial acceleration $\dot{v}(0) = 3c_\mathrm{II}^2/R_\mathrm{st} =
-    3c_\mathrm{II}/T_\mathrm{dyn}$ brings the shell to $v \gg c_\mathrm{II}$
-    within $\sim T_\mathrm{dyn}$.  Without a restoring deceleration, the
-    shell coasts at this large velocity.
-\end{itemize}
-In both cases the shell asymptotically coasts at constant velocity
-($R\propto t$, log-log slope $\to 1$), because $P_\mathrm{in}\propto
-R^{-3/2}$ delivers a \emph{finite} total impulse $\Delta v =
-\int(4\pi R^2 P_\mathrm{in}/M_\mathrm{sh})\,dt < \infty$ while no
-deceleration mechanism exists.
+\paragraph{Effect of removing the ram pressure term.}
+Zeroing $F_\mathrm{ram}$ in the ODE is equivalent to solving
+$d(M_\mathrm{sh}v)/dt = 4\pi R^2(P_\mathrm{in} + F_\mathrm{ram})$, i.e.\
+adding \emph{extra} momentum beyond the physical thermal driving.  Without
+the restoring kinematic deceleration, the quasi-static balance is broken and
+the shell accelerates indefinitely.  Since $P_\mathrm{in}\propto R^{-3/2}$
+delivers a finite total impulse, the shell ultimately coasts at constant
+velocity ($R\propto t$, slope $\to 1$) for any initial velocity $v_0$
+(Figure~\ref{fig:ram_pressure}).
 
 \paragraph{Origin of the $\sim7\%$ offset.}
-The $\sim7\%$ late-time offset between the full ODE (with ram pressure,
-$v_0=c_\mathrm{II}$) and Spitzer arises not from ram pressure being large
-or small, but from the \emph{inertial term} $M_\mathrm{sh}\,\dot{v}$.
-The Spitzer quasi-static derivation sets $\dot{v}=0$ throughout; the full
-ODE retains a small but non-zero $\dot{v}$ that accumulates over time to
-produce the offset.
+The $\sim7\%$ late-time offset between the full ODE and the Spitzer
+analytic formula (Figure~\ref{fig:ram_pressure}) arises from the
+\emph{inertial term} $M_\mathrm{sh}\dot{v}$ retained in the ODE.  The
+quasi-static derivation sets $\dot{v}=0$ at every instant; the full ODE
+has a small but non-zero $\dot{v}$ whose cumulative effect produces the
+offset.
 
 \begin{figure}[ht]
   \centering
   \includegraphics[width=\linewidth]{../figures/ram_pressure.pdf}
-  \caption{Effect of the ram pressure term and initial condition for
-    uniform density ($n_0=100$ cm$^{-3}$).
-    \emph{Solid blue}: full ODE with ram pressure, D-critical IC
-    ($v_0=c_\mathrm{II}$); \emph{dashed orange}: no-ram ODE, D-critical IC;
+  \caption{Role of the ram pressure term for uniform density
+    ($n_0=100$ cm$^{-3}$).
+    \emph{Solid blue}: full ODE, D-critical IC ($v_0=c_\mathrm{II}$);
+    \emph{dashed orange}: no-ram ODE, D-critical IC;
     \emph{dash-dot green}: no-ram ODE, static IC ($v_0=0$);
     \emph{dotted gray}: Spitzer quasi-static analytic.
-    Both no-ram ODEs coast ($R\propto t$) and diverge from Spitzer because
-    ram pressure equals $P_\mathrm{in}$ along the quasi-static trajectory
-    and can never be neglected.  The $\sim7\%$ offset of the full ODE from
-    Spitzer originates from the retained inertial term $M_\mathrm{sh}\dot{v}$.}
+    Both no-ram ODEs coast ($R\propto t$) because the ram pressure term
+    is essential for the quasi-static balance; removing it gives an
+    unphysically accelerating shell.  The $\sim7\%$ offset of the full ODE
+    from Spitzer originates from the retained inertial term $M_\mathrm{sh}\dot{v}$.}
   \label{fig:ram_pressure}
 \end{figure}
 
@@ -573,7 +556,8 @@ The key results are:
     (Equation~\ref{eq:Rst_numeric}).
   \item The classic Spitzer thin-shell ODE reproduces the $R\propto t^{4/7}$
     analytic solution (Equation~\ref{eq:spitzer}) within $\sim7\%$ at late
-    times.
+    times; the offset arises from the inertial term $M_\mathrm{sh}\dot{v}$
+    retained in the ODE but neglected in the quasi-static derivation.
   \item The modified ODE (Equations~\ref{eq:ode_mod}--\ref{eq:dMsh_mod})
     correctly initializes with zero shell mass and accounts for continuous
     mass exchange at the ionization front, yielding a lower shell mass while
